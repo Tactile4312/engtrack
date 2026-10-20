@@ -1,0 +1,1323 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Engineering CRM Wireframes</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500&display=swap">
+<style>
+/* Layout: a review document. Each screen is a true-size frame (1440x900 desktop, 390x844 mobile) scaled to fit, with numbered notes beside it. Single light look on purpose: wireframes are grayscale paper. */
+:root {
+  --paper: #eef0f2;
+  --ink: #1c2024;
+  --muted: #5a626a;
+  --rule: #cfd4d9;
+  --accent: #2c5873;
+  --sheet: #ffffff;
+  /* wireframe grays */
+  --w-ink: #2b2b2b;
+  --w-text: #555555;
+  --w-soft: #8a8a8a;
+  --w-line: #9a9a9a;
+  --w-fill: #f1f1f1;
+  --w-fill2: #e2e2e2;
+  --w-dark: #3a3a3a;
+  --f-doc: "IBM Plex Sans", "Segoe UI", system-ui, -apple-system, Arial, sans-serif;
+  --f-mono: "IBM Plex Mono", Consolas, "Courier New", monospace;
+  --f-wire: "Segoe UI", system-ui, -apple-system, Arial, sans-serif;
+  color-scheme: light;
+}
+* { box-sizing: border-box; }
+body { background: var(--paper); color: var(--ink); font-family: var(--f-doc); font-size: 15px; line-height: 1.5; margin: 0; }
+.wrap { max-width: 1520px; margin: 0 auto; padding-block: 40px 80px; padding-left: max(16px, env(safe-area-inset-left, 0px)); padding-right: max(16px, env(safe-area-inset-right, 0px)); }
+h1, h2, h3 { text-wrap: balance; margin: 0; }
+a { color: var(--accent); }
+a:focus-visible, button:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+
+/* ---------- Cover ---------- */
+.cover { display: grid; grid-template-columns: minmax(0, 1.4fr) minmax(0, 1fr); gap: 40px; padding-bottom: 32px; border-bottom: 1px solid var(--rule); }
+.eyebrow { font-family: var(--f-mono); font-size: 12px; letter-spacing: .08em; text-transform: uppercase; color: var(--accent); }
+.cover h1 { font-size: clamp(30px, 4vw, 46px); line-height: 1.1; font-weight: 600; margin: 10px 0 14px; }
+.cover p { max-width: 62ch; color: var(--muted); margin: 0 0 12px; }
+.meta { display: grid; grid-template-columns: auto 1fr; gap: 6px 18px; font-size: 14px; align-content: start; background: var(--sheet); border: 1px solid var(--rule); padding: 20px 22px; border-radius: 6px; }
+.meta dt { color: var(--muted); }
+.meta dd { margin: 0; font-weight: 500; }
+.toc { display: flex; flex-wrap: wrap; gap: 8px 22px; margin-top: 22px; font-size: 14px; }
+.toc a { text-decoration: none; border-bottom: 1px solid transparent; }
+.toc a:hover { border-bottom-color: var(--accent); }
+.toc .code { font-family: var(--f-mono); color: var(--muted); margin-right: 4px; }
+
+.legend { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 14px; margin: 28px 0 0; }
+.legend div { display: flex; gap: 10px; align-items: center; font-size: 13.5px; color: var(--muted); }
+.legend .sw { flex: none; }
+
+/* ---------- Screen sections ---------- */
+.part { margin-top: 56px; }
+.part > h2 { font-size: 26px; font-weight: 600; }
+.part > .lede { color: var(--muted); max-width: 70ch; margin: 6px 0 0; }
+.screen { margin-top: 36px; }
+.sh { display: flex; gap: 14px; align-items: baseline; flex-wrap: wrap; margin-bottom: 12px; }
+.sh .code { font-family: var(--f-mono); font-size: 13px; background: var(--ink); color: var(--sheet); padding: 2px 8px; border-radius: 3px; }
+.sh h3 { font-size: 20px; font-weight: 600; }
+.sh p { margin: 0; color: var(--muted); font-size: 14px; flex-basis: 100%; max-width: 90ch; }
+.body { display: grid; grid-template-columns: minmax(0, 1fr); gap: 16px; }
+.notes { margin: 0; padding: 0; list-style: none; display: grid; grid-template-columns: repeat(auto-fill, minmax(260px, 1fr)); gap: 10px 24px; font-size: 13.5px; counter-reset: n; }
+.notes li { display: flex; gap: 10px; align-items: flex-start; }
+.notes li::before { counter-increment: n; content: counter(n); flex: none; width: 20px; height: 20px; border-radius: 50%; background: var(--ink); color: var(--sheet); font: 600 11px/20px var(--f-mono); text-align: center; margin-top: 1px; }
+.notes b { font-weight: 600; }
+
+.mob-pair { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 32px; }
+.mob { display: grid; grid-template-columns: 390px minmax(0, 1fr); gap: 20px; align-items: start; }
+.mob .notes { grid-template-columns: minmax(0, 1fr); }
+
+/* ---------- Frame scaling ---------- */
+.scaler { position: relative; width: 100%; overflow: hidden; }
+.scaler .cv { transform-origin: 0 0; }
+.frame-shadow { box-shadow: 0 1px 2px rgba(20, 30, 40, .08), 0 8px 24px rgba(20, 30, 40, .08); }
+
+/* ---------- Wireframe primitives ---------- */
+.cv { position: relative; background: var(--sheet); color: var(--w-text); font-family: var(--f-wire); font-size: 13px; line-height: 1.35; overflow: hidden; }
+.cv.desk { width: 1440px; height: 900px; display: grid; grid-template-columns: 220px 1fr; border: 1px solid var(--w-line); }
+.cv.phone { width: 390px; height: 844px; border: 2px solid var(--w-dark); border-radius: 36px; display: flex; flex-direction: column; }
+.cv b, .cv strong { color: var(--w-ink); font-weight: 600; }
+.demo-tag { position: absolute; right: 10px; bottom: 8px; font: 500 10px var(--f-mono); letter-spacing: .08em; color: var(--w-soft); border: 1px dashed var(--w-line); padding: 1px 6px; background: var(--sheet); z-index: 5; }
+.phone .demo-tag { bottom: 76px; right: 14px; }
+
+.side { background: var(--w-fill); border-right: 1.5px solid var(--w-line); padding: 18px 14px; display: flex; flex-direction: column; gap: 4px; }
+.logo { display: flex; align-items: center; gap: 10px; margin-bottom: 18px; }
+.logo i { width: 34px; height: 34px; border: 1.5px solid var(--w-ink); border-radius: 6px; background: linear-gradient(45deg, transparent 47%, var(--w-line) 48% 52%, transparent 53%), linear-gradient(-45deg, transparent 47%, var(--w-line) 48% 52%, transparent 53%); }
+.logo span { font-weight: 700; color: var(--w-ink); line-height: 1.1; font-size: 13px; }
+.logo small { display: block; font-weight: 400; color: var(--w-soft); font-size: 11px; }
+.nav { display: flex; align-items: center; gap: 10px; padding: 8px 10px; border-radius: 5px; color: var(--w-text); }
+.nav i { width: 16px; height: 16px; border: 1.5px solid var(--w-soft); border-radius: 3px; flex: none; }
+.nav.on { background: var(--w-dark); color: #fff; }
+.nav.on i { border-color: #fff; }
+.nav .ct { margin-left: auto; font-size: 11px; background: var(--w-ink); color: #fff; border-radius: 9px; padding: 0 6px; }
+.nav.on .ct { background: #fff; color: var(--w-ink); }
+.side .spacer { flex: 1; }
+
+.main { display: flex; flex-direction: column; min-width: 0; }
+.top { height: 60px; border-bottom: 1.5px solid var(--w-line); display: flex; align-items: center; gap: 16px; padding: 0 22px; flex: none; }
+.search { flex: 0 1 420px; height: 34px; border: 1.5px solid var(--w-line); border-radius: 5px; display: flex; align-items: center; gap: 8px; padding: 0 10px; color: var(--w-soft); }
+.search::before { content: ""; width: 12px; height: 12px; border: 1.5px solid var(--w-soft); border-radius: 50%; }
+.top .grow { flex: 1; }
+.bell { position: relative; width: 34px; height: 34px; border: 1.5px solid var(--w-line); border-radius: 50%; display: grid; place-items: center; font-size: 15px; color: var(--w-ink); }
+.bell .dot { position: absolute; top: -5px; right: -6px; background: var(--w-ink); color: #fff; font-size: 10px; border-radius: 8px; padding: 0 5px; line-height: 16px; }
+.avatar { width: 34px; height: 34px; border-radius: 50%; background: var(--w-fill2); border: 1.5px solid var(--w-line); flex: none; }
+.who { line-height: 1.2; font-size: 12px; }
+.who b { display: block; font-size: 13px; }
+
+.content { padding: 18px 22px; display: flex; flex-direction: column; gap: 14px; min-height: 0; flex: 1; }
+.ptitle { display: flex; align-items: center; justify-content: space-between; gap: 12px; }
+.ptitle h4 { margin: 0; font-size: 20px; color: var(--w-ink); font-weight: 600; }
+.ptitle small { color: var(--w-soft); }
+.row { display: flex; gap: 8px; align-items: center; flex-wrap: wrap; }
+
+.b { position: relative; border: 1.5px solid var(--w-line); border-radius: 5px; background: var(--sheet); padding: 12px 14px; min-width: 0; }
+.b.fill { background: var(--w-fill); }
+.b h5 { margin: 0 0 10px; font-size: 13px; color: var(--w-ink); font-weight: 600; display: flex; justify-content: space-between; align-items: center; gap: 8px; }
+.b h5 small { font-weight: 400; color: var(--w-soft); font-size: 11px; }
+.btn { display: inline-flex; align-items: center; gap: 6px; height: 32px; padding: 0 12px; border: 1.5px solid var(--w-dark); border-radius: 5px; font-weight: 500; color: var(--w-ink); background: var(--sheet); white-space: nowrap; font-size: 12.5px; position: relative; }
+.btn.pri { background: var(--w-dark); color: #fff; }
+.btn.ghost { border-color: var(--w-line); color: var(--w-text); }
+.btn.sm { height: 26px; padding: 0 9px; font-size: 12px; }
+.chip { display: inline-flex; align-items: center; gap: 4px; border: 1.5px solid var(--w-line); border-radius: 14px; padding: 2px 10px; font-size: 12px; white-space: nowrap; background: var(--sheet); }
+.chip.on { background: var(--w-dark); border-color: var(--w-dark); color: #fff; }
+.tag { display: inline-block; font-size: 10.5px; border: 1px solid var(--w-line); border-radius: 3px; padding: 0 5px; color: var(--w-text); white-space: nowrap; background: var(--w-fill); }
+.tag.proj { background: var(--w-dark); color: #fff; border-color: var(--w-dark); }
+
+/* status badges: shape and fill carry the state, not color */
+.st { display: inline-flex; align-items: center; gap: 4px; font-size: 11px; border: 1.5px solid var(--w-dark); border-radius: 11px; padding: 0 8px; line-height: 18px; white-space: nowrap; color: var(--w-ink); background: var(--sheet); }
+.st.new { border-style: solid; }
+.st.review { border-style: dashed; }
+.st.prog { background: var(--w-fill2); }
+.st.hold { background: repeating-linear-gradient(45deg, var(--w-fill2) 0 3px, var(--sheet) 3px 6px); }
+.st.wait { border-style: dotted; }
+.st.done { background: var(--w-dark); color: #fff; }
+.st.done::before { content: "\2713"; }
+.st.cancel { text-decoration: line-through; color: var(--w-soft); border-color: var(--w-soft); }
+.flag { display: inline-flex; align-items: center; gap: 3px; font-size: 10.5px; font-weight: 700; background: #111; color: #fff; border-radius: 3px; padding: 0 6px; line-height: 17px; white-space: nowrap; letter-spacing: .02em; }
+.flag::before { content: "!"; }
+.flag.today { background: var(--sheet); color: #111; border: 1.5px solid #111; line-height: 14px; }
+.flag.today::before { content: "\25CF"; font-size: 8px; }
+.pri { font-size: 11px; white-space: nowrap; }
+.pri::before { content: ""; display: inline-block; width: 8px; height: 8px; margin-right: 4px; border: 1.5px solid var(--w-dark); vertical-align: -1px; }
+.pri.Critical::before { background: #111; }
+.pri.High::before { background: var(--w-soft); }
+.pri.Normal::before { background: var(--w-fill2); }
+.pg { display: flex; align-items: center; gap: 6px; font-size: 11px; color: var(--w-ink); }
+.pg span { flex: 1; height: 7px; border: 1px solid var(--w-dark); border-radius: 4px; overflow: hidden; min-width: 40px; background: var(--sheet); }
+.pg span i { display: block; height: 100%; background: var(--w-dark); }
+
+.co { position: absolute; top: -10px; right: -10px; width: 22px; height: 22px; border-radius: 50%; background: #111; color: #fff; font: 600 11px/22px var(--f-mono); text-align: center; z-index: 6; box-shadow: 0 0 0 2px #fff; }
+.co.l { right: auto; left: -10px; }
+
+.line { height: 8px; background: var(--w-fill2); border-radius: 3px; }
+.ph { border: 1.5px solid var(--w-line); background: linear-gradient(to top right, transparent calc(50% - 1px), var(--w-line) 50%, transparent calc(50% + 1px)), linear-gradient(to bottom right, transparent calc(50% - 1px), var(--w-line) 50%, transparent calc(50% + 1px)), var(--w-fill); }
+
+table.t { width: 100%; border-collapse: collapse; font-size: 12px; }
+table.t th { text-align: left; font-weight: 600; color: var(--w-ink); border-bottom: 1.5px solid var(--w-dark); padding: 6px 4px; white-space: nowrap; font-size: 11.5px; }
+table.t th .s { color: var(--w-soft); font-weight: 400; }
+table.t td { border-bottom: 1px solid var(--w-fill2); padding: 7px 4px; vertical-align: middle; white-space: nowrap; }
+table.t tr.over td:first-child { box-shadow: inset 3px 0 0 #111; }
+table.t .num { font-family: var(--f-mono); font-size: 11.5px; color: var(--w-ink); }
+table.t td.wrap { white-space: normal; }
+
+.kpis { display: grid; grid-template-columns: repeat(8, minmax(0, 1fr)); gap: 10px; }
+.kpi { padding: 10px 12px; }
+.kpi small { display: block; font-size: 11.5px; color: var(--w-text); }
+.kpi b { font-size: 26px; line-height: 1.1; display: block; font-variant-numeric: tabular-nums; }
+.kpi em { font-style: normal; font-size: 10.5px; color: var(--w-soft); }
+.kpi.alert { border: 2px solid #111; }
+
+.hbars { display: grid; grid-template-columns: 112px 1fr 22px; gap: 5px 8px; align-items: center; font-size: 11.5px; }
+.hbars i { display: block; height: 11px; background: var(--w-soft); border-radius: 2px; }
+.hbars span:nth-child(3n) { text-align: right; font-variant-numeric: tabular-nums; color: var(--w-ink); }
+.vbars { display: flex; align-items: flex-end; gap: 10px; height: 150px; border-bottom: 1.5px solid var(--w-dark); padding: 0 4px; }
+.vbars div { flex: 1; display: flex; flex-direction: column; align-items: center; justify-content: flex-end; gap: 3px; height: 100%; font-size: 10.5px; }
+.vbars div i { width: 100%; background: var(--w-soft); border-radius: 2px 2px 0 0; }
+.vbars div.cur i { background: var(--w-dark); }
+.vlabels { display: flex; gap: 10px; padding: 3px 4px 0; font-size: 10.5px; color: var(--w-soft); }
+.vlabels span { flex: 1; text-align: center; }
+.donut { width: 130px; height: 130px; border-radius: 50%; position: relative; flex: none; }
+.donut::after { content: ""; position: absolute; inset: 30px; background: var(--sheet); border-radius: 50%; }
+.donut b { position: absolute; inset: 0; display: grid; place-items: center; z-index: 1; font-size: 20px; }
+.lg { display: grid; gap: 4px; font-size: 11.5px; }
+.lg span { display: flex; align-items: center; gap: 6px; }
+.lg span i { width: 10px; height: 10px; border: 1px solid var(--w-dark); flex: none; }
+.lg span em { font-style: normal; margin-left: auto; color: var(--w-ink); padding-left: 10px; font-variant-numeric: tabular-nums; }
+
+.list { display: grid; gap: 0; }
+.list > div { display: flex; gap: 10px; align-items: center; padding: 7px 0; border-bottom: 1px solid var(--w-fill2); font-size: 12px; }
+.list > div:last-child { border-bottom: 0; }
+.list .d { font-family: var(--f-mono); font-size: 11px; color: var(--w-ink); width: 46px; flex: none; }
+.list .x { flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.list .x small { display: block; color: var(--w-soft); font-size: 11px; }
+
+.field { display: grid; gap: 4px; font-size: 12px; position: relative; }
+.field label { color: var(--w-ink); font-weight: 600; font-size: 12px; }
+.field label .rq { color: #111; }
+.inp { height: 34px; border: 1.5px solid var(--w-line); border-radius: 4px; display: flex; align-items: center; padding: 0 10px; color: var(--w-ink); background: var(--sheet); justify-content: space-between; gap: 6px; }
+.inp.ph-t { color: var(--w-soft); }
+.inp.sel::after { content: "\25BE"; color: var(--w-soft); }
+.inp.date::after { content: ""; width: 13px; height: 13px; border: 1.5px solid var(--w-soft); border-radius: 2px; border-top-width: 4px; }
+.inp.area { height: 64px; align-items: flex-start; padding-top: 8px; }
+.inp.err { border: 2px solid #111; }
+.errmsg { font-size: 11.5px; color: #111; font-weight: 600; display: flex; gap: 5px; }
+.errmsg::before { content: "!"; width: 15px; height: 15px; background: #111; color: #fff; border-radius: 50%; font-size: 10px; display: grid; place-items: center; flex: none; margin-top: 1px; }
+.hint { font-size: 11px; color: var(--w-soft); }
+.cb { display: flex; align-items: center; gap: 8px; border: 1.5px solid var(--w-line); border-radius: 5px; padding: 8px 10px; font-size: 12.5px; background: var(--sheet); }
+.cb::before { content: ""; width: 14px; height: 14px; border: 1.5px solid var(--w-dark); border-radius: 3px; flex: none; }
+.cb.on { border-color: var(--w-dark); background: var(--w-fill); }
+.cb.on::before { content: "\2713"; background: var(--w-dark); color: #fff; font-size: 10px; display: grid; place-items: center; }
+
+.tabs { display: flex; gap: 0; border-bottom: 1.5px solid var(--w-line); }
+.tabs span { padding: 7px 14px; font-size: 12.5px; border-bottom: 3px solid transparent; margin-bottom: -1.5px; }
+.tabs span.on { border-bottom-color: var(--w-dark); color: var(--w-ink); font-weight: 600; }
+
+/* gantt */
+.gantt { display: grid; grid-template-columns: 360px 1fr; border: 1.5px solid var(--w-line); border-radius: 5px; overflow: hidden; position: relative; }
+.g-left, .g-right { position: relative; }
+.g-left { border-right: 1.5px solid var(--w-line); }
+.g-head { height: 46px; border-bottom: 1.5px solid var(--w-dark); background: var(--w-fill); font-size: 11px; position: relative; }
+.g-left .g-head { display: grid; grid-template-columns: 1fr 70px 56px; align-items: end; padding: 0 10px 6px; font-weight: 600; color: var(--w-ink); }
+.g-row { height: 29px; border-bottom: 1px solid var(--w-fill2); position: relative; }
+.g-left .g-row { display: grid; grid-template-columns: 1fr 70px 56px; align-items: center; padding: 0 10px; font-size: 11.5px; gap: 6px; }
+.g-left .g-row .nm { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.g-left .g-row.p { background: var(--w-fill); }
+.g-left .g-row.p .nm { font-weight: 600; color: var(--w-ink); }
+.g-left .g-row.s .nm { padding-left: 22px; }
+.g-wk { position: absolute; top: 0; height: 22px; border-left: 1px solid var(--w-line); font-size: 10.5px; padding: 4px 5px; color: var(--w-ink); font-weight: 600; white-space: nowrap; }
+.g-day { position: absolute; top: 24px; font-size: 9px; color: var(--w-soft); text-align: center; }
+.g-grid { position: absolute; top: 46px; bottom: 0; border-left: 1px dashed var(--w-fill2); }
+.g-today { position: absolute; top: 22px; bottom: 0; border-left: 2px solid #111; z-index: 3; }
+.g-today span { position: absolute; top: 0; left: -1px; transform: translateX(-50%); background: #111; color: #fff; font-size: 9.5px; padding: 0 5px; border-radius: 2px; white-space: nowrap; }
+.g-bar { position: absolute; top: 7px; height: 15px; border: 1.5px solid var(--w-dark); border-radius: 3px; background: var(--sheet); overflow: hidden; z-index: 2; }
+.g-bar i { position: absolute; inset: 0 auto 0 0; background: var(--w-soft); }
+.g-row.p .g-bar { top: 6px; height: 17px; border-width: 2px; }
+.g-row.p .g-bar i { background: var(--w-dark); }
+.g-bar.over { border-color: #111; background: repeating-linear-gradient(-45deg, var(--sheet) 0 3px, var(--w-fill2) 3px 6px); }
+.g-bar.hold { border-style: dashed; }
+.g-bar.done i { background: var(--w-dark); }
+.g-lbl { position: absolute; top: 7px; font-size: 10.5px; white-space: nowrap; z-index: 2; color: var(--w-ink); }
+.g-ms { position: absolute; top: 8px; width: 13px; height: 13px; background: #111; transform: rotate(45deg); z-index: 3; border: 2px solid #fff; box-sizing: content-box; margin-left: -8px; }
+
+/* calendar */
+.cal { display: grid; grid-template-columns: repeat(7, minmax(0, 1fr)); border-top: 1.5px solid var(--w-line); border-left: 1.5px solid var(--w-line); }
+.cal > div { border-right: 1.5px solid var(--w-line); border-bottom: 1.5px solid var(--w-line); min-height: 112px; padding: 4px 5px; display: flex; flex-direction: column; gap: 3px; font-size: 10.5px; min-width: 0; }
+.cal > div.hd { min-height: 0; padding: 5px; font-weight: 600; color: var(--w-ink); background: var(--w-fill); font-size: 11px; }
+.cal > div.out { background: repeating-linear-gradient(45deg, var(--sheet) 0 6px, var(--w-fill) 6px 7px); color: var(--w-soft); }
+.cal > div.today { box-shadow: inset 0 0 0 2px #111; }
+.cal .dn { font-weight: 600; color: var(--w-ink); }
+.cal .today .dn { background: #111; color: #fff; border-radius: 10px; padding: 0 6px; align-self: flex-start; }
+.ev { border: 1px solid var(--w-dark); border-radius: 3px; padding: 1px 4px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; background: var(--sheet); color: var(--w-ink); }
+.ev.proj { background: var(--w-dark); color: #fff; }
+.ev.ms::before { content: "\25C6 "; }
+.ev.over { background: #111; color: #fff; font-weight: 700; }
+.ev.over::before { content: "! "; }
+.ev.done { color: var(--w-soft); border-color: var(--w-line); text-decoration: line-through; }
+
+/* notifications */
+.nt { display: flex; gap: 10px; padding: 10px 6px; border-bottom: 1px solid var(--w-fill2); align-items: flex-start; font-size: 12px; position: relative; }
+.nt .u { width: 9px; height: 9px; border-radius: 50%; border: 1.5px solid var(--w-dark); flex: none; margin-top: 4px; }
+.nt.unread .u { background: #111; border-color: #111; }
+.nt.unread .x b { font-weight: 700; }
+.nt .x { flex: 1; min-width: 0; }
+.nt .x small { display: block; color: var(--w-soft); font-size: 11px; }
+.nt .go { font-size: 11px; color: var(--w-ink); text-decoration: underline; white-space: nowrap; }
+
+/* phone */
+.sbar { height: 40px; display: flex; align-items: center; justify-content: space-between; padding: 0 28px; font-size: 12px; font-weight: 600; color: var(--w-ink); flex: none; }
+.sbar i { width: 64px; height: 8px; background: var(--w-fill2); border-radius: 4px; }
+.mhead { height: 52px; display: flex; align-items: center; gap: 10px; padding: 0 16px; border-bottom: 1.5px solid var(--w-line); flex: none; }
+.mhead .logo { margin: 0; }
+.mhead .logo i { width: 28px; height: 28px; }
+.mhead .grow { flex: 1; }
+.mhead .back { font-size: 20px; color: var(--w-ink); width: 24px; }
+.mhead h4 { margin: 0; font-size: 16px; color: var(--w-ink); }
+.mbody { flex: 1; overflow: hidden; padding: 14px 16px; display: flex; flex-direction: column; gap: 12px; min-height: 0; }
+.mnav { height: 74px; border-top: 1.5px solid var(--w-line); display: grid; grid-template-columns: repeat(5, 1fr); padding: 8px 6px 18px; flex: none; }
+.mnav span { display: flex; flex-direction: column; align-items: center; gap: 3px; font-size: 10.5px; position: relative; }
+.mnav span i { width: 22px; height: 22px; border: 1.5px solid var(--w-soft); border-radius: 5px; }
+.mnav span.on { color: var(--w-ink); font-weight: 700; }
+.mnav span.on i { background: var(--w-dark); border-color: var(--w-dark); }
+.mnav span .ct { position: absolute; top: -4px; left: 50%; margin-left: 6px; background: #111; color: #fff; font-size: 9.5px; border-radius: 8px; padding: 0 5px; line-height: 15px; }
+.mcard { border: 1.5px solid var(--w-line); border-radius: 8px; padding: 12px; display: grid; gap: 6px; position: relative; background: var(--sheet); }
+.mcard.over { border: 2px solid #111; }
+.mcard .num { font-family: var(--f-mono); font-size: 11px; color: var(--w-text); display: flex; justify-content: space-between; align-items: center; }
+.mcard .nm { font-weight: 600; color: var(--w-ink); font-size: 14px; }
+.mcard .meta2 { display: flex; justify-content: space-between; font-size: 12px; gap: 8px; align-items: center; }
+.mk { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+.mk .b { padding: 10px 12px; border-radius: 8px; }
+.mk b { font-size: 26px; display: block; line-height: 1.1; }
+.mk small { font-size: 11.5px; }
+.mk .alert { border: 2px solid #111; }
+.banner { border: 2px solid #111; border-radius: 8px; padding: 10px 12px; display: flex; gap: 10px; align-items: center; font-size: 12.5px; position: relative; }
+.banner::before { content: "!"; width: 22px; height: 22px; border-radius: 50%; background: #111; color: #fff; display: grid; place-items: center; font-weight: 700; flex: none; }
+.sect { font-size: 11px; text-transform: uppercase; letter-spacing: .07em; color: var(--w-soft); font-weight: 600; margin-top: 2px; }
+.tap { min-height: 44px; }
+.stick { border-top: 1.5px solid var(--w-line); padding: 12px 16px 26px; display: grid; grid-template-columns: 1fr 1.4fr; gap: 10px; flex: none; }
+.stick .btn { height: 46px; justify-content: center; font-size: 14px; border-radius: 8px; }
+
+/* flow diagram */
+.flow { background: var(--sheet); border: 1px solid var(--rule); border-radius: 6px; padding: 24px; overflow-x: auto; }
+.flow-main { display: flex; align-items: center; gap: 0; min-width: 1100px; }
+.fn { border: 1.5px solid var(--ink); border-radius: 6px; padding: 10px 14px; font-size: 14px; font-weight: 600; background: var(--sheet); white-space: nowrap; text-align: center; }
+.fn small { display: block; font-weight: 400; color: var(--muted); font-size: 12px; }
+.fn.start { background: var(--ink); color: var(--sheet); }
+.fn.start small { color: #c9d0d6; }
+.arr { flex: 1; min-width: 26px; height: 2px; background: var(--ink); position: relative; }
+.arr::after { content: ""; position: absolute; right: -1px; top: -5px; border: 6px solid transparent; border-left: 8px solid var(--ink); border-right: 0; }
+.alts { display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 14px; margin-top: 24px; min-width: 0; }
+.alt { border: 1px solid var(--rule); border-radius: 6px; padding: 14px 16px; background: var(--paper); }
+.alt h4 { margin: 0 0 8px; font-size: 14px; font-weight: 600; }
+.alt ol { margin: 0; padding-left: 20px; font-size: 13.5px; color: var(--muted); display: grid; gap: 3px; }
+.alt ol b { color: var(--ink); font-weight: 600; }
+
+.qs { display: grid; grid-template-columns: repeat(auto-fit, minmax(320px, 1fr)); gap: 14px; margin-top: 16px; }
+.q { background: var(--sheet); border: 1px solid var(--rule); border-radius: 6px; padding: 16px 18px; }
+.q h4 { margin: 0 0 6px; font-size: 15px; font-weight: 600; }
+.q p { margin: 0 0 8px; color: var(--muted); font-size: 14px; }
+.q .prop { font-size: 13.5px; border-left: 3px solid var(--accent); padding-left: 10px; }
+.q .prop b { font-weight: 600; }
+.scope-list { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 6px; }
+.scope-list span { font-size: 13px; border: 1px solid var(--rule); padding: 1px 9px; border-radius: 12px; background: var(--paper); }
+
+.foot { margin-top: 56px; padding-top: 18px; border-top: 1px solid var(--rule); font-size: 13px; color: var(--muted); display: flex; justify-content: space-between; flex-wrap: wrap; gap: 10px; }
+
+@media (max-width: 1100px) {
+  .mob-pair { grid-template-columns: minmax(0, 1fr); }
+}
+@media (max-width: 760px) {
+  .cover { grid-template-columns: minmax(0, 1fr); gap: 24px; }
+  .mob { grid-template-columns: minmax(0, 1fr); }
+  .mob .scaler { max-width: 390px; }
+}
+@media print {
+  @page { size: 1540px 1280px; margin: 40px; }
+  body { background: #fff; }
+  .wrap { max-width: none; padding: 0; }
+  .scaler { width: 1440px; height: auto !important; overflow: visible; }
+  .mob .scaler { width: 390px; }
+  .scaler .cv { transform: none !important; }
+  .frame-shadow { box-shadow: none; }
+  .part, .screen { break-before: page; margin-top: 0; }
+  .part > .screen:first-of-type { break-before: avoid; margin-top: 24px; }
+  .mob-pair { grid-template-columns: 1fr 1fr; }
+  .mob { grid-template-columns: 390px minmax(0, 1fr); }
+  .notes { grid-template-columns: repeat(4, minmax(0, 1fr)); }
+  .mob .notes { grid-template-columns: minmax(0, 1fr); }
+  .flow-main { min-width: 0; }
+  .toc { display: none; }
+}
+@media (prefers-reduced-motion: reduce) { * { transition: none !important; } }
+</style>
+</head>
+<body>
+
+<div class="wrap">
+
+<!-- ================= COVER ================= -->
+<header class="cover">
+  <div>
+    <div class="eyebrow">Low-fidelity wireframes &middot; Draft for client review</div>
+    <h1>Engineering Project CRM &amp; Tracker</h1>
+    <p>These wireframes show the proposed layout of every main screen before any visual design or development starts. They are intentionally grey and plain so the discussion stays on <b>what is on each screen, where it sits, and how people move between screens</b>.</p>
+    <p>Colours, fonts, logo and final wording come in the next stage (polished mockups and a clickable prototype), after we agree on these layouts.</p>
+    <nav class="toc" aria-label="Contents">
+      <a href="#desktop"><span class="code">D1&ndash;D7</span>Desktop screens</a>
+      <a href="#mobile"><span class="code">M1&ndash;M6</span>Mobile screens</a>
+      <a href="#flow"><span class="code">F</span>User flow</a>
+      <a href="#questions"><span class="code">Q</span>Points to confirm</a>
+    </nav>
+  </div>
+  <dl class="meta">
+    <dt>Document</dt><dd>Wireframes, stage 1 of 2</dd>
+    <dt>Version</dt><dd>0.1 draft</dd>
+    <dt>Date</dt><dd>19 October 2026</dd>
+    <dt>Screens</dt><dd>7 desktop (1440 &times; 900) &middot; 6 mobile (390 &times; 844)</dd>
+    <dt>Sample data</dt><dd>All projects, clients and people shown are fictional demo records</dd>
+    <dt>Next step</dt><dd>Your feedback on layout and the points to confirm at the end</dd>
+  </dl>
+</header>
+
+<div class="legend" aria-label="How to read the wireframes">
+  <div><span class="sw co" style="position:static;box-shadow:none">1</span>Numbered marker, explained in the notes beside each screen</div>
+  <div><span class="sw st prog">In Progress</span><span class="sw st done">Completed</span>Status badges use shape and fill; final colours come later</div>
+  <div><span class="sw flag">Overdue</span><span class="sw flag today">Due today</span>Deadline warnings</div>
+  <div><span class="sw tag proj">Project</span><span class="sw tag">Scope</span>Project deadline vs individual scope deadline</div>
+</div>
+
+<!-- ================= DESKTOP ================= -->
+<section class="part" id="desktop">
+  <h2>Desktop screens</h2>
+  <p class="lede">Designed for a 1440 &times; 900 office monitor. The left menu and top bar stay the same on every screen.</p>
+
+  <!-- D1 Dashboard -->
+  <article class="screen" id="d1">
+    <div class="sh"><span class="code">D1</span><h3>Dashboard</h3><p>The home page. Shows the health of all work at a glance. Every number and chart is calculated from live project records, and clicking any card or chart bar opens the matching filtered project list.</p></div>
+    <div class="body">
+      <div class="scaler frame-shadow" data-w="1440" data-h="900"><div class="cv desk">
+        <aside class="side" data-side="Dashboard"></aside>
+        <div class="main">
+          <div class="top" data-top></div>
+          <div class="content">
+            <div class="ptitle"><div><h4>Dashboard</h4><small>Monday, 19 October 2026</small></div><div class="row"><span class="btn ghost">This month &#9662;</span><span class="btn pri">+ New Project</span></div></div>
+            <div class="kpis" style="position:relative">
+              <span class="co l">2</span>
+              <div class="b kpi"><small>Total Projects</small><b>24</b><em>all open + closed</em></div>
+              <div class="b kpi"><small>New Requests</small><b>3</b><em>awaiting review</em></div>
+              <div class="b kpi"><small>Active</small><b>14</b><em>in progress</em></div>
+              <div class="b kpi alert"><small>Due Today</small><b>1</b><em>+ 2 scopes</em></div>
+              <div class="b kpi"><small>Due This Week</small><b>2</b><em>+ 5 scopes</em></div>
+              <div class="b kpi alert"><small>Overdue</small><b>2</b><em>+ 3 scopes</em></div>
+              <div class="b kpi"><small>Completed</small><b>6</b><em>this year</em></div>
+              <div class="b kpi"><small>On Hold</small><b>1</b><em>&nbsp;</em></div>
+            </div>
+            <div style="display:grid;grid-template-columns:1.05fr 1.2fr 1fr 0.9fr;gap:12px">
+              <div class="b"><span class="co">3</span><h5>Project status</h5>
+                <div class="row" style="gap:14px;flex-wrap:nowrap">
+                  <div class="donut" style="background:conic-gradient(#3a3a3a 0 58%, #8a8a8a 0 71%, #b5b5b5 0 83%, #d8d8d8 0 92%, #ececec 0)"><b>24</b></div>
+                  <div class="lg" style="flex:1">
+                    <span><i style="background:#3a3a3a"></i>In Progress<em>14</em></span>
+                    <span><i style="background:#8a8a8a"></i>New / Review<em>3</em></span>
+                    <span><i style="background:#b5b5b5"></i>Waiting<em>3</em></span>
+                    <span><i style="background:#d8d8d8"></i>On Hold<em>1</em></span>
+                    <span><i style="background:#ececec"></i>Completed<em>6</em></span>
+                  </div>
+                </div>
+              </div>
+              <div class="b"><span class="co">4</span><h5>Projects by engineering scope <small>a project can count in several</small></h5>
+                <div class="hbars">
+                  <span>Lifting</span><span><i style="width:90%"></i></span><span>9</span>
+                  <span>Transport</span><span><i style="width:70%"></i></span><span>7</span>
+                  <span>Jacking &amp; Skidding</span><span><i style="width:50%"></i></span><span>5</span>
+                  <span>Shutdown</span><span><i style="width:30%"></i></span><span>3</span>
+                  <span>Bridging</span><span><i style="width:40%"></i></span><span>4</span>
+                  <span>GBP Calculation</span><span><i style="width:60%"></i></span><span>6</span>
+                  <span>Route Survey</span><span><i style="width:80%"></i></span><span>8</span>
+                  <span>MS Study</span><span><i style="width:50%"></i></span><span>5</span>
+                  <span>DWG</span><span><i style="width:100%"></i></span><span>10</span>
+                </div>
+              </div>
+              <div class="b"><span class="co">5</span><h5>Completed per month</h5>
+                <div class="vbars">
+                  <div><i style="height:40%"></i></div><div><i style="height:60%"></i></div><div><i style="height:20%"></i></div><div><i style="height:80%"></i></div><div><i style="height:60%"></i></div><div class="cur"><i style="height:40%"></i></div>
+                </div>
+                <div class="vlabels"><span>May</span><span>Jun</span><span>Jul</span><span>Aug</span><span>Sep</span><span>Oct</span></div>
+              </div>
+              <div class="b"><span class="co">6</span><h5>On time vs overdue</h5>
+                <div style="display:grid;gap:10px;font-size:11.5px">
+                  <div>Projects<div style="display:flex;height:18px;border:1.5px solid #3a3a3a;border-radius:3px;overflow:hidden;margin-top:3px"><i style="width:86%;background:#d8d8d8"></i><i style="width:14%;background:#111"></i></div><div style="display:flex;justify-content:space-between"><span>On time 12</span><b>Overdue 2</b></div></div>
+                  <div>Scopes<div style="display:flex;height:18px;border:1.5px solid #3a3a3a;border-radius:3px;overflow:hidden;margin-top:3px"><i style="width:91%;background:#d8d8d8"></i><i style="width:9%;background:#111"></i></div><div style="display:flex;justify-content:space-between"><span>On time 31</span><b>Overdue 3</b></div></div>
+                </div>
+              </div>
+            </div>
+            <div style="display:grid;grid-template-columns:1.25fr 1fr 1.1fr 0.9fr;gap:12px;flex:1;min-height:0">
+              <div class="b"><span class="co">7</span><h5>Upcoming deadlines <small>next 14 days</small></h5>
+                <div class="list">
+                  <div><span class="d">19 Oct</span><span class="tag proj">Project</span><span class="x">Substation B Transformer Move<small>CRM-2026-0138 &middot; M. Tan</small></span><span class="flag today">Today</span></div>
+                  <div><span class="d">20 Oct</span><span class="tag">Scope</span><span class="x">MS Study &middot; Reactor Vessel R-301 Lift<small>CRM-2026-0142 &middot; J. Cruz</small></span></div>
+                  <div><span class="d">22 Oct</span><span class="tag">Scope</span><span class="x">Lifting &middot; Reactor Vessel R-301 Lift<small>CRM-2026-0142 &middot; J. Cruz</small></span></div>
+                  <div><span class="d">24 Oct</span><span class="tag proj">Project</span><span class="x">Reactor Vessel R-301 Lift<small>CRM-2026-0142 &middot; L. Santos (PM)</small></span></div>
+                  <div><span class="d">30 Oct</span><span class="tag proj">Project</span><span class="x">Unit 3 Shutdown Lift Plan<small>CRM-2026-0127 &middot; K. Bautista</small></span></div>
+                </div>
+              </div>
+              <div class="b" style="border:2px solid #111"><span class="co">8</span><h5>Overdue <small>needs action</small></h5>
+                <div class="list">
+                  <div><span class="flag">4 d</span><span class="x"><b>Heat Exchanger E-12 Skid-in</b><small>Project &middot; CRM-2026-0131 &middot; due 15 Oct</small></span></div>
+                  <div><span class="flag">3 d</span><span class="x"><b>Tank T-7 Jacking Procedure</b><small>Project &middot; CRM-2026-0116 &middot; due 16 Oct</small></span></div>
+                  <div><span class="flag">3 d</span><span class="x">DWG scope &middot; Tank T-7<small>Scope &middot; R. Lim &middot; due 16 Oct</small></span></div>
+                </div>
+              </div>
+              <div class="b"><span class="co">9</span><h5>Recent activity</h5>
+                <div class="list">
+                  <div><span class="avatar" style="width:22px;height:22px"></span><span class="x"><b>J. Cruz</b> set Lifting to 60%<small>CRM-2026-0142 &middot; 10 min ago</small></span></div>
+                  <div><span class="avatar" style="width:22px;height:22px"></span><span class="x"><b>L. Santos</b> changed due date 22 &rarr; 24 Oct<small>CRM-2026-0142 &middot; 1 h ago</small></span></div>
+                  <div><span class="avatar" style="width:22px;height:22px"></span><span class="x"><b>A. Reyes</b> created a new request<small>CRM-2026-0145 &middot; 3 h ago</small></span></div>
+                  <div><span class="avatar" style="width:22px;height:22px"></span><span class="x"><b>System</b> sent 3-day reminders (4)<small>08:00 today</small></span></div>
+                </div>
+              </div>
+              <div class="b"><span class="co">10</span><h5>Workload by engineer <small>open scopes</small></h5>
+                <div class="hbars" style="grid-template-columns:80px 1fr 18px">
+                  <span>J. Cruz</span><span><i style="width:100%"></i></span><span>6</span>
+                  <span>M. Tan</span><span><i style="width:66%"></i></span><span>4</span>
+                  <span>R. Lim</span><span><i style="width:83%;background:#111"></i></span><span>5</span>
+                  <span>K. Bautista</span><span><i style="width:50%"></i></span><span>3</span>
+                </div>
+                <div class="hint" style="margin-top:8px">Dark bar = has an overdue scope</div>
+              </div>
+            </div>
+          </div>
+        </div>
+        <span class="co" style="top:72px;left:600px">1</span>
+        <span class="demo-tag">DEMO DATA</span>
+      </div></div>
+      <ol class="notes">
+        <li><span><b>Search</b> by project number, name or client from any screen. The bell shows unread deadline alerts.</span></li>
+        <li><span><b>Summary cards.</b> Each card opens the project list already filtered. Cards also count individual scopes that are due or overdue.</span></li>
+        <li><span><b>Status distribution</b> across all projects.</span></li>
+        <li><span><b>Projects by scope</b> for all nine engineering scopes. One project can appear under several scopes.</span></li>
+        <li><span><b>Monthly completions</b> for the last six months.</span></li>
+        <li><span><b>On time vs overdue</b>, shown separately for projects and scopes.</span></li>
+        <li><span><b>Upcoming deadlines.</b> The tag shows whether the date is the whole project's deadline or one scope's deadline.</span></li>
+        <li><span><b>Overdue list</b> is always visible and sorted by days late.</span></li>
+        <li><span><b>Recent activity</b>: who changed what, and when.</span></li>
+        <li><span><b>Workload</b> per engineer, so managers can spot overloaded people before assigning more work.</span></li>
+      </ol>
+    </div>
+  </article>
+
+  <!-- D2 Tracker -->
+  <article class="screen" id="d2">
+    <div class="sh"><span class="code">D2</span><h3>Project Tracker</h3><p>The full list of projects, replacing the manual tracking sheet. Search, filter and sort to find any project, then open it for details.</p></div>
+    <div class="body">
+      <div class="scaler frame-shadow" data-w="1440" data-h="900"><div class="cv desk">
+        <aside class="side" data-side="Projects"></aside>
+        <div class="main">
+          <div class="top" data-top></div>
+          <div class="content">
+            <div class="ptitle"><div><h4>Projects</h4><small>24 projects &middot; showing active and closed</small></div><div class="row"><span class="btn">Export &#9662;<span class="co">5</span></span><span class="btn pri">+ Add Project<span class="co">6</span></span></div></div>
+            <div class="b fill" style="display:grid;gap:10px">
+              <span class="co">1</span>
+              <div class="row">
+                <div class="search" style="flex:0 0 340px;background:#fff">Search number, project or client&hellip;</div>
+                <span class="chip">Status &#9662;</span><span class="chip">Scope &#9662;</span><span class="chip">Client &#9662;</span><span class="chip">Salesperson &#9662;</span><span class="chip">Engineer &#9662;</span><span class="chip">Priority &#9662;</span><span class="chip">Due date &#9662;</span>
+                <span style="flex:1"></span>
+                <span class="chip on">&#9632; Overdue only</span><span class="chip">&#9633; Show completed</span>
+              </div>
+              <div class="row" style="font-size:12px"><span>Active filters:</span><span class="chip">Status: not Cancelled &times;</span><span class="chip">Due: any &times;</span><a style="color:#333;text-decoration:underline">Clear all</a></div>
+            </div>
+            <div class="b" style="padding:4px 10px;flex:1;min-height:0">
+              <span class="co">2</span>
+              <table class="t">
+                <thead><tr><th>CRM No. <span class="s">&#8597;</span></th><th>Project <span class="s">&#8597;</span></th><th>Client</th><th>Engineering scope</th><th>Salesperson</th><th>Engineer</th><th>Requested</th><th>Start</th><th>Due <span class="s">&#9660;</span></th><th>Priority <span class="s">&#8597;</span></th><th>Status <span class="s">&#8597;</span></th><th style="width:84px">Progress</th><th></th></tr></thead>
+                <tbody id="trk"></tbody>
+              </table>
+              <span class="co" style="top:96px;right:auto;left:500px">3</span>
+            </div>
+            <div class="row" style="justify-content:space-between;font-size:12px;position:relative">
+              <span>Showing 1&ndash;8 of 24</span>
+              <div class="row"><span class="btn sm ghost">&lsaquo; Prev</span><span class="btn sm pri">1</span><span class="btn sm ghost">2</span><span class="btn sm ghost">3</span><span class="btn sm ghost">Next &rsaquo;</span><span style="margin-left:10px">Rows per page: 25 &#9662;</span></div>
+              <span class="co" style="right:auto;left:150px;top:-4px">4</span>
+            </div>
+          </div>
+        </div>
+        <span class="demo-tag">DEMO DATA</span>
+      </div></div>
+      <ol class="notes">
+        <li><span><b>Search and filters</b> for status, scope, client, salesperson, engineer, priority and due date, plus quick toggles for overdue-only and completed projects.</span></li>
+        <li><span><b>Sortable columns</b>: click a header to sort by due date, project name, priority or status.</span></li>
+        <li><span><b>Scope summary.</b> Projects with several scopes show the first scope and &ldquo;+3&rdquo;. All scopes are listed on the project page. A black bar on the left marks overdue rows.</span></li>
+        <li><span><b>Pagination</b> keeps large lists fast.</span></li>
+        <li><span><b>Export</b> the current filtered list to CSV, Excel or PDF.</span></li>
+        <li><span><b>Add Project</b> opens the create form (D4). The &#8943; menu on each row offers Edit, Duplicate and Archive.</span></li>
+      </ol>
+    </div>
+  </article>
+
+  <!-- D3 Details -->
+  <article class="screen" id="d3">
+    <div class="sh"><span class="code">D3</span><h3>Project Details</h3><p>Everything about one project on one page. This example has four engineering scopes, each with its own engineer, deadline, status and progress.</p></div>
+    <div class="body">
+      <div class="scaler frame-shadow" data-w="1440" data-h="900"><div class="cv desk">
+        <aside class="side" data-side="Projects"></aside>
+        <div class="main">
+          <div class="top" data-top></div>
+          <div class="content" style="gap:12px">
+            <div class="ptitle" style="position:relative">
+              <span class="co l">1</span>
+              <div><small>Projects &rsaquo; CRM-2026-0142</small>
+                <div class="row" style="gap:10px"><h4>CRM-2026-0142 &middot; Reactor Vessel R-301 Lift</h4><span class="st prog">In Progress</span><span class="pri High">High</span></div>
+              </div>
+              <div class="row"><span class="btn ghost">Duplicate</span><span class="btn ghost">Archive</span><span class="btn ghost">Print summary</span><span class="btn pri">Edit Project</span></div>
+            </div>
+            <div style="display:grid;grid-template-columns:300px 1fr;gap:12px;flex:1;min-height:0">
+              <div style="display:grid;gap:12px;align-content:start">
+                <div class="b"><span class="co">2</span><h5>Overall progress</h5>
+                  <div class="pg" style="font-size:20px;font-weight:600"><span style="height:12px"><i style="width:58%"></i></span>58%</div>
+                  <div class="hint" style="margin-top:4px">Average of the 4 scopes</div>
+                </div>
+                <div class="b"><span class="co">3</span><h5>Project information</h5>
+                  <div style="display:grid;grid-template-columns:104px 1fr;gap:6px 8px;font-size:12px">
+                    <span>Client</span><b>Meridian Petrochem</b>
+                    <span>Contact</span><span>E. Navarro &middot; 0917 000 0142</span>
+                    <span>Salesperson</span><b>A. Reyes</b>
+                    <span>Project manager</span><b>L. Santos</b>
+                    <span>Engineers</span><span>J. Cruz, M. Tan, K. Bautista</span>
+                    <span>Requested</span><span>28 Sep 2026</span>
+                    <span>Start</span><span>01 Oct 2026</span>
+                    <span>Due</span><b>24 Oct 2026</b>
+                    <span>Planned finish</span><span>23 Oct 2026</span>
+                    <span>Created</span><span>A. Reyes &middot; 28 Sep</span>
+                    <span>Last updated</span><span>J. Cruz &middot; 10 min ago</span>
+                  </div>
+                </div>
+                <div class="b"><h5>Description</h5><div style="display:grid;gap:6px"><div class="line"></div><div class="line"></div><div class="line" style="width:70%"></div></div></div>
+              </div>
+              <div style="display:grid;gap:12px;grid-template-rows:auto auto 1fr;min-height:0">
+                <div class="b"><span class="co">4</span><h5>Engineering scopes <span class="btn sm">+ Add scope</span></h5>
+                  <table class="t">
+                    <thead><tr><th>Scope</th><th>Engineer</th><th>Start</th><th>Due</th><th>Status</th><th style="width:150px">Progress</th><th>Depends on</th><th></th></tr></thead>
+                    <tbody>
+                      <tr><td><b>Route Survey</b></td><td>M. Tan</td><td>01 Oct</td><td>09 Oct</td><td><span class="st done">Completed</span></td><td><div class="pg"><span><i style="width:100%"></i></span>100%</div></td><td>&mdash;</td><td>&#8943;</td></tr>
+                      <tr><td><b>Lifting</b></td><td>J. Cruz</td><td>12 Oct</td><td>22 Oct</td><td><span class="st prog">In Progress</span></td><td><div class="pg"><span><i style="width:60%"></i></span>60%</div></td><td>Route Survey</td><td>&#8943;</td></tr>
+                      <tr><td><b>MS Study</b></td><td>J. Cruz</td><td>12 Oct</td><td>20 Oct</td><td><span class="st prog">In Progress</span></td><td><div class="pg"><span><i style="width:50%"></i></span>50%</div></td><td>&mdash;</td><td>&#8943;</td></tr>
+                      <tr><td><b>DWG</b></td><td>K. Bautista</td><td>15 Oct</td><td>24 Oct</td><td><span class="st prog">In Progress</span></td><td><div class="pg"><span><i style="width:20%"></i></span>20%</div></td><td>Lifting</td><td>&#8943;</td></tr>
+                    </tbody>
+                  </table>
+                </div>
+                <div class="b"><span class="co">5</span><h5>Timeline <small>01 Oct &ndash; 26 Oct</small></h5>
+                  <div style="position:relative;height:62px;border-top:1px solid #ddd">
+                    <div style="position:absolute;left:0;width:30%;top:6px;height:10px;background:#3a3a3a;border-radius:2px"></div>
+                    <div style="position:absolute;left:42%;width:42%;top:20px;height:10px;border:1.5px solid #3a3a3a;border-radius:2px;background:linear-gradient(90deg,#8a8a8a 60%,#fff 60%)"></div>
+                    <div style="position:absolute;left:42%;width:31%;top:34px;height:10px;border:1.5px solid #3a3a3a;border-radius:2px;background:linear-gradient(90deg,#8a8a8a 50%,#fff 50%)"></div>
+                    <div style="position:absolute;left:54%;width:35%;top:48px;height:10px;border:1.5px solid #3a3a3a;border-radius:2px;background:linear-gradient(90deg,#8a8a8a 20%,#fff 20%)"></div>
+                    <div style="position:absolute;left:69%;top:-4px;bottom:0;border-left:2px solid #111"></div>
+                    <div class="g-ms" style="left:85%;top:22px"></div>
+                  </div>
+                </div>
+                <div class="b" style="min-height:0"><span class="co">6</span>
+                  <div class="tabs"><span class="on">Tasks &amp; milestones</span><span>Notes (3)</span><span>Attachments (5)</span><span>Activity history</span></div>
+                  <div style="display:grid;grid-template-columns:1.2fr 1fr;gap:16px;margin-top:10px">
+                    <div class="list">
+                      <div><span class="cb on" style="border:0;padding:0;background:none"></span><span class="x">Confirm crane capacity chart<small>Lifting &middot; J. Cruz &middot; done 14 Oct</small></span></div>
+                      <div><span class="cb" style="border:0;padding:0"></span><span class="x"><b>Ground bearing check with GBP data</b><small>Lifting &middot; J. Cruz &middot; due 21 Oct</small></span><span class="st prog">In Progress</span></div>
+                      <div><span class="cb" style="border:0;padding:0"></span><span class="x"><b>Draft method statement</b><small>MS Study &middot; J. Cruz &middot; due 20 Oct</small></span><span class="st new">Not started</span></div>
+                    </div>
+                    <div class="list">
+                      <div><span style="width:10px;height:10px;background:#111;transform:rotate(45deg);flex:none"></span><span class="x">Request received<small>28 Sep &middot; done</small></span></div>
+                      <div><span style="width:10px;height:10px;background:#111;transform:rotate(45deg);flex:none"></span><span class="x">Scope confirmation<small>02 Oct &middot; done</small></span></div>
+                      <div><span style="width:10px;height:10px;border:1.5px solid #111;transform:rotate(45deg);flex:none"></span><span class="x"><b>Client approval</b><small>23 Oct &middot; planned</small></span></div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+        <span class="demo-tag">DEMO DATA</span>
+      </div></div>
+      <ol class="notes">
+        <li><span><b>Header</b> with project number, name, status and priority. Actions: Edit, Duplicate, Archive, Print summary.</span></li>
+        <li><span><b>Overall progress</b> is calculated from the scopes. See point Q2 at the end.</span></li>
+        <li><span><b>People and dates</b>: client contact, salesperson, project manager, engineers, requested, start, due and planned finish. Shows who created and last updated the record.</span></li>
+        <li><span><b>Engineering scopes</b> each have their own engineer, dates, status, progress and dependency. Scopes can be added or removed here.</span></li>
+        <li><span><b>Mini timeline</b> of the scopes. The vertical line is today; the diamond is a milestone.</span></li>
+        <li><span><b>Tabs</b> for tasks and milestones, notes, attachments and the full activity history (who changed what and when).</span></li>
+      </ol>
+    </div>
+  </article>
+
+  <!-- D4 Create/Edit -->
+  <article class="screen" id="d4">
+    <div class="sh"><span class="code">D4</span><h3>Create / Edit Project</h3><p>One form in four sections. Picking a scope adds a row where its engineer and due date can be set. Problems are shown next to the field before saving.</p></div>
+    <div class="body">
+      <div class="scaler frame-shadow" data-w="1440" data-h="900"><div class="cv desk">
+        <aside class="side" data-side="Projects"></aside>
+        <div class="main">
+          <div class="top" data-top></div>
+          <div class="content" style="gap:12px">
+            <div class="ptitle"><div><small>Projects &rsaquo; New project</small><h4>Create project</h4></div><div class="row" style="position:relative"><span class="btn ghost">Cancel</span><span class="btn pri">Save project</span><span class="co">6</span></div></div>
+            <div class="b" style="border:2px solid #111;padding:8px 12px;display:flex;gap:8px;align-items:center;font-size:12.5px"><span class="errmsg" style="font-size:12.5px">2 fields need attention before this project can be saved.</span></div>
+            <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;flex:1;min-height:0">
+              <div style="display:grid;gap:12px;align-content:start">
+                <div class="b"><span class="co">1</span><h5>1 &middot; Project information</h5>
+                  <div style="display:grid;grid-template-columns:1fr 1.6fr;gap:10px">
+                    <div class="field"><label>Project number <span class="rq">*</span></label><div class="inp err">CRM-2026-0138</div><span class="errmsg">This number is already used by &ldquo;Substation B Transformer Move&rdquo;.</span></div>
+                    <div class="field"><label>Project name <span class="rq">*</span></label><div class="inp">Flare Stack Replacement Lift</div></div>
+                    <div class="field" style="grid-column:1/-1"><label>Client <span class="rq">*</span></label><div class="inp sel">Vista Chemicals</div><span class="hint">Pick an existing client or + Add new client</span></div>
+                    <div class="field" style="grid-column:1/-1"><label>Description</label><div class="inp area ph-t">Scope of work, site location, special conditions&hellip;</div></div>
+                  </div>
+                </div>
+                <div class="b"><span class="co">3</span><h5>3 &middot; Scheduling</h5>
+                  <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:10px">
+                    <div class="field"><label>Requested <span class="rq">*</span></label><div class="inp date">19 Oct 2026</div></div>
+                    <div class="field"><label>Start date</label><div class="inp date">02 Nov 2026</div></div>
+                    <div class="field"><label>Due date <span class="rq">*</span></label><div class="inp date err">28 Oct 2026</div></div>
+                    <div class="field"><label>Priority</label><div class="inp sel">High</div></div>
+                    <div style="grid-column:1/-1"><span class="errmsg">Due date (28 Oct) is before the start date (02 Nov).</span></div>
+                  </div>
+                </div>
+                <div class="b"><span class="co">4</span><h5>4 &middot; Assignments</h5>
+                  <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:10px">
+                    <div class="field"><label>Salesperson <span class="rq">*</span></label><div class="inp sel">D. Ocampo</div></div>
+                    <div class="field"><label>Project manager <span class="rq">*</span></label><div class="inp sel">L. Santos</div></div>
+                    <div class="field"><label>Assigned engineer(s)</label><div class="inp sel">R. Lim, K. Bautista</div></div>
+                  </div>
+                </div>
+              </div>
+              <div class="b" style="align-self:start"><span class="co">2</span><h5>2 &middot; Engineering scope <small>select one or more</small></h5>
+                <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:8px">
+                  <span class="cb on">Lifting</span><span class="cb">Transport</span><span class="cb">Jacking &amp; Skidding</span>
+                  <span class="cb">Shutdown</span><span class="cb">Bridging</span><span class="cb on">GBP Calculation</span>
+                  <span class="cb">Route Survey</span><span class="cb on">MS Study</span><span class="cb on">DWG</span>
+                </div>
+                <div style="margin-top:14px;font-size:12px;font-weight:600;color:#2b2b2b;position:relative">Selected scopes: set engineer and dates for each<span class="co" style="right:auto;left:330px;top:-4px">5</span></div>
+                <table class="t" style="margin-top:4px">
+                  <thead><tr><th>Scope</th><th>Engineer</th><th>Start</th><th>Due</th><th>Priority</th></tr></thead>
+                  <tbody>
+                    <tr><td><b>Lifting</b></td><td><div class="inp sel" style="height:28px">R. Lim</div></td><td><div class="inp date" style="height:28px">02 Nov</div></td><td><div class="inp date" style="height:28px">16 Nov</div></td><td><div class="inp sel" style="height:28px">High</div></td></tr>
+                    <tr><td><b>GBP Calculation</b></td><td><div class="inp sel" style="height:28px">K. Bautista</div></td><td><div class="inp date" style="height:28px">02 Nov</div></td><td><div class="inp date" style="height:28px">06 Nov</div></td><td><div class="inp sel" style="height:28px">Normal</div></td></tr>
+                    <tr><td><b>MS Study</b></td><td><div class="inp sel" style="height:28px">R. Lim</div></td><td><div class="inp date" style="height:28px">09 Nov</div></td><td><div class="inp date" style="height:28px">18 Nov</div></td><td><div class="inp sel" style="height:28px">Normal</div></td></tr>
+                    <tr><td><b>DWG</b></td><td><div class="inp sel ph-t" style="height:28px">Choose&hellip;</div></td><td><div class="inp date ph-t" style="height:28px">&mdash;</div></td><td><div class="inp date ph-t" style="height:28px">&mdash;</div></td><td><div class="inp sel" style="height:28px">Normal</div></td></tr>
+                  </tbody>
+                </table>
+                <div class="hint" style="margin-top:8px">Scopes may have different engineers and deadlines from each other and from the project.</div>
+              </div>
+            </div>
+          </div>
+        </div>
+        <span class="demo-tag">DEMO DATA</span>
+      </div></div>
+      <ol class="notes">
+        <li><span><b>Project information.</b> The system checks that the project number is not already in use.</span></li>
+        <li><span><b>Engineering scope</b>: all nine scope types as tick boxes. More than one can be ticked.</span></li>
+        <li><span><b>Scheduling</b> with date pickers. The system catches impossible dates, such as a due date before the start date.</span></li>
+        <li><span><b>Assignments</b>: salesperson, project manager and engineers, picked from the user list.</span></li>
+        <li><span><b>Per-scope details</b> appear for each ticked scope, so each one can get its own engineer and deadline.</span></li>
+        <li><span><b>Save / Cancel.</b> Fields marked * are required. The edit form uses the same layout.</span></li>
+      </ol>
+    </div>
+  </article>
+
+  <!-- D5 Gantt -->
+  <article class="screen" id="d5">
+    <div class="sh"><span class="code">D5</span><h3>Gantt Chart</h3><p>All schedules on one timeline. Each project is a bar, with its engineering scopes as rows underneath. Uses the same data as the project tracker.</p></div>
+    <div class="body">
+      <div class="scaler frame-shadow" data-w="1440" data-h="900"><div class="cv desk">
+        <aside class="side" data-side="Timeline"></aside>
+        <div class="main">
+          <div class="top" data-top></div>
+          <div class="content" style="gap:12px">
+            <div class="ptitle"><div><h4>Timeline</h4><small>05 Oct &ndash; 15 Nov 2026</small></div>
+              <div class="row" style="position:relative"><span class="co l">2</span><span class="btn sm ghost">&lsaquo;</span><span class="btn sm ghost">Today</span><span class="btn sm ghost">&rsaquo;</span><span class="chip">Day</span><span class="chip on">Week</span><span class="chip">Month</span><span class="btn sm ghost">05 Oct &ndash; 15 Nov &#9662;</span><span class="btn sm">Export</span></div>
+            </div>
+            <div class="row" style="position:relative"><span class="co l">1</span><span class="chip">Project &#9662;</span><span class="chip">Engineer &#9662;</span><span class="chip">Scope &#9662;</span><span class="chip">Status: open &#9662;</span><span style="flex:1"></span>
+              <span class="row" style="font-size:11px;gap:12px"><span><span class="g-bar" style="position:static;display:inline-block;width:26px;height:10px;vertical-align:-1px"></span> scheduled</span><span><span class="g-bar over" style="position:static;display:inline-block;width:26px;height:10px;vertical-align:-1px"></span> overdue</span><span><span class="g-bar hold" style="position:static;display:inline-block;width:26px;height:10px;vertical-align:-1px"></span> on hold</span><span>&#9670; milestone</span></span>
+            </div>
+            <div class="gantt" id="gantt"></div>
+            <div class="b" style="border:2px solid #111;padding:8px 12px;font-size:12px;display:flex;gap:10px;align-items:center"><span class="co">6</span><span class="flag">Clash</span><span><b>R. Lim</b> has 2 overlapping scopes 12&ndash;16 Oct (Tank T-7 Jacking &amp; DWG) while both are overdue. Possible delay to CRM-2026-0116.</span></div>
+          </div>
+        </div>
+        <span class="demo-tag">DEMO DATA</span>
+      </div></div>
+      <ol class="notes">
+        <li><span><b>Filters</b> by project, engineer, scope and status.</span></li>
+        <li><span><b>Day, week or month view</b>, a date-range picker, and a Today button.</span></li>
+        <li><span><b>Project rows</b> expand (&#9662;) to show their scopes. Click any bar or row to open the project.</span></li>
+        <li><span><b>Bars</b> show start to due date. The filled part shows progress. Hatched bars are overdue; dashed bars are on hold.</span></li>
+        <li><span><b>Today line, milestones (&#9670;) and dependencies.</b> The arrow shows that Lifting can only start after Route Survey.</span></li>
+        <li><span><b>Clash warning</b> when one engineer has overlapping work or a delay affects other scopes.</span></li>
+      </ol>
+    </div>
+  </article>
+
+  <!-- D6 Calendar + notifications -->
+  <article class="screen" id="d6">
+    <div class="sh"><span class="code">D6</span><h3>Calendar &amp; Notifications</h3><p>A month view of every deadline and milestone, next to the notification centre where deadline reminders arrive.</p></div>
+    <div class="body">
+      <div class="scaler frame-shadow" data-w="1440" data-h="900"><div class="cv desk">
+        <aside class="side" data-side="Calendar"></aside>
+        <div class="main">
+          <div class="top" data-top></div>
+          <div class="content" style="gap:12px">
+            <div style="display:grid;grid-template-columns:1fr 360px;gap:14px;flex:1;min-height:0">
+              <div style="display:flex;flex-direction:column;gap:10px;min-width:0">
+                <div class="ptitle"><div class="row"><h4>October 2026</h4><span class="btn sm ghost">&lsaquo;</span><span class="btn sm ghost">Today</span><span class="btn sm ghost">&rsaquo;</span></div>
+                  <div class="row" style="position:relative"><span class="co l">1</span><span class="chip on">Month</span><span class="chip">Week</span><span class="chip">Engineer &#9662;</span><span class="chip">Type: all &#9662;</span></div></div>
+                <div class="row" style="font-size:11px;gap:12px;position:relative"><span class="co l">2</span><span style="margin-left:18px"><span class="ev proj" style="display:inline-block">Project due</span></span><span><span class="ev" style="display:inline-block">Scope due</span></span><span><span class="ev ms" style="display:inline-block">Milestone</span></span><span><span class="ev over" style="display:inline-block">Overdue</span></span><span><span class="ev done" style="display:inline-block">Completed</span></span></div>
+                <div class="cal" id="cal"></div>
+              </div>
+              <div class="b" style="display:flex;flex-direction:column;padding:12px 12px 4px;min-height:0">
+                <span class="co">3</span>
+                <h5>Notifications <span class="row" style="gap:6px"><span class="chip on">Unread 4</span><span class="chip">All</span></span></h5>
+                <div class="row" style="justify-content:space-between;font-size:11.5px;margin-bottom:4px"><span>Today</span><a style="text-decoration:underline;color:#333">Mark all as read</a></div>
+                <div class="nt unread"><span class="u"></span><span class="x"><span class="flag">Overdue</span> <b>Tank T-7 Jacking Procedure</b><small>Project CRM-2026-0116 &middot; 3 days late &middot; to R. Lim, L. Santos</small></span><span class="go">Open</span></div>
+                <div class="nt unread"><span class="u"></span><span class="x"><span class="flag today">Due today</span> <b>Substation B Transformer Move</b><small>Project CRM-2026-0138 &middot; to M. Tan</small></span><span class="go">Open</span></div>
+                <div class="nt unread"><span class="u"></span><span class="x"><span class="tag">1 day</span> <b>MS Study</b> scope due tomorrow<small>CRM-2026-0142 Reactor Vessel R-301 &middot; to J. Cruz</small></span><span class="go">Open</span></div>
+                <div class="nt unread" style="position:relative"><span class="u"></span><span class="x"><span class="tag">3 days</span> <b>Lifting</b> scope due 22 Oct<small>CRM-2026-0142 &middot; to J. Cruz, L. Santos</small></span><span class="go">Open</span><span class="co" style="top:-8px;right:44px">4</span></div>
+                <div class="row" style="justify-content:space-between;font-size:11.5px;margin:8px 0 4px"><span>Earlier</span></div>
+                <div class="nt"><span class="u"></span><span class="x"><span class="flag">Overdue</span> Heat Exchanger E-12 Skid-in<small>Project CRM-2026-0131 &middot; read 16 Oct</small></span><span class="go">Open</span></div>
+                <div class="nt"><span class="u"></span><span class="x"><span class="tag">7 days</span> Unit 3 Shutdown Lift Plan<small>Project CRM-2026-0127 &middot; read 15 Oct</small></span><span class="go">Open</span></div>
+                <div style="margin-top:auto;border-top:1.5px solid #9a9a9a;padding:10px 4px 8px;position:relative"><span class="co">5</span>
+                  <div style="font-size:12px;font-weight:600;color:#2b2b2b;margin-bottom:6px">Upcoming reminders</div>
+                  <div class="list">
+                    <div><span class="d">21 Oct</span><span class="x">1-day reminder &middot; Lifting scope (0142)</span></div>
+                    <div><span class="d">23 Oct</span><span class="x">7-day reminder &middot; Unit 3 Shutdown (0127)</span></div>
+                    <div><span class="d">24 Oct</span><span class="x">Due-today alert &middot; Reactor Vessel R-301</span></div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+        <span class="demo-tag">DEMO DATA</span>
+      </div></div>
+      <ol class="notes">
+        <li><span><b>Month or week view</b>, filterable by engineer and by type of date.</span></li>
+        <li><span><b>Calendar items</b> for project deadlines, scope deadlines, milestones and planned finishes. Overdue and completed items look different. Click any item to open its project.</span></li>
+        <li><span><b>Notification centre.</b> Black dot = unread. Each alert names the project or scope, who it was sent to, and has an Open link.</span></li>
+        <li><span><b>Reminder steps</b>: 7, 3 and 1 day before the due date, on the day, and a separate overdue alert. Sent to the assigned engineer and the project manager.</span></li>
+        <li><span><b>Upcoming reminders</b> already scheduled. If a deadline changes, these reschedule automatically. Completed and cancelled work stops getting reminders.</span></li>
+      </ol>
+    </div>
+  </article>
+
+  <!-- D7 Reports -->
+  <article class="screen" id="d7">
+    <div class="sh"><span class="code">D7</span><h3>Reports</h3><p>Ready-made reports with one set of filters and export controls. Exports follow the filters and only include what the user is allowed to see.</p></div>
+    <div class="body">
+      <div class="scaler frame-shadow" data-w="1440" data-h="900"><div class="cv desk">
+        <aside class="side" data-side="Reports"></aside>
+        <div class="main">
+          <div class="top" data-top></div>
+          <div class="content" style="gap:12px">
+            <div style="display:grid;grid-template-columns:230px 1fr;gap:14px;flex:1;min-height:0">
+              <div class="b fill" style="align-self:start"><span class="co">1</span><h5>Reports</h5>
+                <div class="list" style="font-size:12px">
+                  <div>All active projects</div><div style="font-weight:700;color:#111;background:#fff;margin:0 -6px;padding:7px 6px;border-radius:4px;border-bottom:0">&#9656; Completion statistics</div><div>Overdue projects</div><div>Due within 7 days</div><div>Due within 30 days</div><div>Completed by month</div><div>By engineering scope</div><div>By client</div><div>Workload per engineer</div><div>Projects on hold</div><div>Scope-level delays</div>
+                </div>
+              </div>
+              <div style="display:flex;flex-direction:column;gap:12px;min-width:0">
+                <div class="ptitle"><div><h4>Completion statistics</h4><small>01 Jan &ndash; 19 Oct 2026 &middot; all engineers &middot; all scopes</small></div>
+                  <div class="row" style="position:relative"><span class="co l">3</span><span class="btn">CSV</span><span class="btn">Excel</span><span class="btn">PDF</span><span class="btn ghost">Print</span></div></div>
+                <div class="b fill" style="display:flex;gap:10px;align-items:end;flex-wrap:wrap"><span class="co">2</span>
+                  <div class="field" style="width:220px"><label>Date range</label><div class="inp date" style="background:#fff">01 Jan 2026 &ndash; 19 Oct 2026</div></div>
+                  <div class="field" style="width:160px"><label>Status</label><div class="inp sel" style="background:#fff">All</div></div>
+                  <div class="field" style="width:160px"><label>Engineer</label><div class="inp sel" style="background:#fff">All</div></div>
+                  <div class="field" style="width:160px"><label>Scope</label><div class="inp sel" style="background:#fff">All</div></div>
+                  <span class="btn pri">Apply</span>
+                </div>
+                <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:10px">
+                  <div class="b kpi"><small>Completed</small><b>18</b></div>
+                  <div class="b kpi"><small>On time</small><b>83%</b></div>
+                  <div class="b kpi"><small>Avg days late (late ones)</small><b>3.7</b></div>
+                  <div class="b kpi alert"><small>Overdue now</small><b>2</b></div>
+                </div>
+                <div style="display:grid;grid-template-columns:1.3fr 1fr 1fr;gap:12px">
+                  <div class="b"><h5>Completed per month <small>dark = finished late</small></h5>
+                    <div class="vbars" style="height:150px">
+                      <div><i style="height:20%"></i></div><div><i style="height:40%"></i></div><div><i style="height:30%"></i></div><div><i style="height:20%"></i></div><div><i style="height:40%"></i></div><div><i style="height:60%"></i></div><div><i style="height:20%"></i></div><div><i style="height:80%"></i></div><div><i style="height:60%"></i></div><div class="cur"><i style="height:40%"></i></div>
+                    </div>
+                    <div class="vlabels"><span>J</span><span>F</span><span>M</span><span>A</span><span>M</span><span>J</span><span>J</span><span>A</span><span>S</span><span>O</span></div>
+                  </div>
+                  <div class="b"><span class="co">4</span><h5>Workload by engineer</h5>
+                    <div class="hbars" style="grid-template-columns:80px 1fr 18px">
+                      <span>J. Cruz</span><span><i style="width:100%"></i></span><span>6</span>
+                      <span>R. Lim</span><span><i style="width:83%"></i></span><span>5</span>
+                      <span>M. Tan</span><span><i style="width:66%"></i></span><span>4</span>
+                      <span>K. Bautista</span><span><i style="width:50%"></i></span><span>3</span>
+                    </div>
+                  </div>
+                  <div class="b"><h5>Projects by scope</h5>
+                    <div class="hbars" style="grid-template-columns:96px 1fr 18px">
+                      <span>DWG</span><span><i style="width:100%"></i></span><span>10</span>
+                      <span>Lifting</span><span><i style="width:90%"></i></span><span>9</span>
+                      <span>Route Survey</span><span><i style="width:80%"></i></span><span>8</span>
+                      <span>Transport</span><span><i style="width:70%"></i></span><span>7</span>
+                      <span>GBP Calculation</span><span><i style="width:60%"></i></span><span>6</span>
+                      <span>other 4 scopes</span><span><i style="width:50%;background:#d0d0d0"></i></span><span>17</span>
+                    </div>
+                  </div>
+                </div>
+                <div class="b" style="flex:1;min-height:0"><span class="co">5</span><h5>Overdue and due within 30 days <small>2 overdue &middot; 4 due</small></h5>
+                  <table class="t">
+                    <thead><tr><th>CRM No.</th><th>Project</th><th>Client</th><th>Engineer</th><th>Due</th><th>Days</th><th>Status</th></tr></thead>
+                    <tbody>
+                      <tr class="over"><td class="num">CRM-2026-0131</td><td>Heat Exchanger E-12 Skid-in</td><td>Coastal Refining</td><td>R. Lim</td><td>15 Oct 2026</td><td><span class="flag">4 late</span></td><td><span class="st wait">Waiting for Client</span></td></tr>
+                      <tr class="over"><td class="num">CRM-2026-0116</td><td>Tank T-7 Jacking Procedure</td><td>Coastal Refining</td><td>R. Lim</td><td>16 Oct 2026</td><td><span class="flag">3 late</span></td><td><span class="st prog">In Progress</span></td></tr>
+                      <tr><td class="num">CRM-2026-0138</td><td>Substation B Transformer Move</td><td>Northgrid Power</td><td>M. Tan</td><td>19 Oct 2026</td><td><span class="flag today">Today</span></td><td><span class="st prog">In Progress</span></td></tr>
+                      <tr><td class="num">CRM-2026-0142</td><td>Reactor Vessel R-301 Lift</td><td>Meridian Petrochem</td><td>J. Cruz</td><td>24 Oct 2026</td><td>5</td><td><span class="st prog">In Progress</span></td></tr>
+                    </tbody>
+                  </table>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+        <span class="demo-tag">DEMO DATA</span>
+      </div></div>
+      <ol class="notes">
+        <li><span><b>Report list</b>: active, overdue, due in 7 or 30 days, completed by month, by scope, by client, workload, on hold and scope-level delays.</span></li>
+        <li><span><b>One filter bar</b> for every report: date range, status, engineer and scope.</span></li>
+        <li><span><b>Export</b> to CSV, Excel or PDF, or print. Project numbers and dates keep their format in Excel.</span></li>
+        <li><span><b>Charts</b> for completions, workload and scope mix.</span></li>
+        <li><span><b>Detail table</b> under the charts. This is the exported data.</span></li>
+      </ol>
+    </div>
+  </article>
+</section>
+
+<!-- ================= MOBILE ================= -->
+<section class="part" id="mobile">
+  <h2>Mobile screens</h2>
+  <p class="lede">Designed for a 390 &times; 844 phone. Mobile uses cards and lists instead of a shrunken desktop table, with large touch targets and a bottom menu. Engineers can update progress from site.</p>
+
+  <div class="screen mob-pair">
+    <!-- M1 -->
+    <article class="mob" id="m1">
+      <div>
+        <div class="sh"><span class="code">M1</span><h3>Dashboard</h3></div>
+        <div class="scaler" data-w="390" data-h="844"><div class="cv phone">
+          <div class="sbar"><span>9:41</span><i></i></div>
+          <div class="mhead"><div class="logo"><i></i><span>EngTrack</span></div><span class="grow"></span><span class="bell">&#9711;<span class="dot">4</span><span class="co">1</span></span><span class="avatar"></span></div>
+          <div class="mbody">
+            <div class="banner"><span class="co">2</span><span><b>2 projects overdue</b> &middot; 3 scopes overdue<br><span style="text-decoration:underline">View overdue</span></span></div>
+            <div class="mk" style="position:relative"><span class="co">3</span>
+              <div class="b alert"><small>Due today</small><b>1</b></div>
+              <div class="b"><small>Due this week</small><b>2</b></div>
+              <div class="b"><small>Active</small><b>14</b></div>
+              <div class="b"><small>New requests</small><b>3</b></div>
+            </div>
+            <div class="b" style="border-radius:8px"><span class="co">4</span><h5>Status <small>24 projects</small></h5>
+              <div style="display:flex;height:16px;border:1.5px solid #3a3a3a;border-radius:3px;overflow:hidden"><i style="width:58%;background:#3a3a3a"></i><i style="width:13%;background:#8a8a8a"></i><i style="width:12%;background:#b5b5b5"></i><i style="width:4%;background:#d8d8d8"></i><i style="width:13%;background:#f1f1f1"></i></div>
+              <div style="display:flex;justify-content:space-between;font-size:11px;margin-top:4px"><span>Active 14</span><span>New 3</span><span>Waiting 3</span><span>Done 6</span></div>
+            </div>
+            <div class="sect">Upcoming deadlines</div>
+            <div class="list" style="position:relative"><span class="co">5</span>
+              <div class="tap"><span class="d">Today</span><span class="x"><b>Substation B Transformer</b><small>Project &middot; M. Tan</small></span><span>&rsaquo;</span></div>
+              <div class="tap"><span class="d">20 Oct</span><span class="x">MS Study &middot; R-301 Lift<small>Scope &middot; J. Cruz</small></span><span>&rsaquo;</span></div>
+              <div class="tap"><span class="d">22 Oct</span><span class="x">Lifting &middot; R-301 Lift<small>Scope &middot; J. Cruz</small></span><span>&rsaquo;</span></div>
+            </div>
+          </div>
+          <nav class="mnav" data-mnav="Home"></nav>
+          <span class="demo-tag">DEMO</span>
+        </div></div>
+      </div>
+      <ol class="notes">
+        <li><span><b>Compact header</b> with logo, alert bell (unread count) and profile.</span></li>
+        <li><span><b>Overdue alert</b> at the top whenever something is late.</span></li>
+        <li><span><b>Key numbers</b> as large tap-able cards.</span></li>
+        <li><span><b>Compact status chart</b> sized for a phone.</span></li>
+        <li><span><b>Upcoming deadlines</b>, marked as project or scope. The bottom menu reaches every main area.</span></li>
+      </ol>
+    </article>
+
+    <!-- M2 -->
+    <article class="mob" id="m2">
+      <div>
+        <div class="sh"><span class="code">M2</span><h3>Project List</h3></div>
+        <div class="scaler" data-w="390" data-h="844"><div class="cv phone">
+          <div class="sbar"><span>9:41</span><i></i></div>
+          <div class="mhead"><h4>Projects</h4><span class="grow"></span><span class="btn pri sm" style="height:34px">+ New</span></div>
+          <div class="mbody" style="gap:10px">
+            <div class="search tap" style="flex:none;height:44px;border-radius:8px;position:relative">Search number, project, client<span class="co">1</span></div>
+            <div class="row" style="flex-wrap:nowrap;overflow:hidden;position:relative"><span class="chip on">Open</span><span class="chip">Overdue</span><span class="chip">Mine</span><span class="chip">Scope &#9662;</span><span class="chip">Status &#9662;</span><span class="co" style="right:-4px">2</span></div>
+            <div style="display:grid;gap:10px;position:relative" id="mlist"></div>
+          </div>
+          <nav class="mnav" data-mnav="Projects"></nav>
+          <span class="demo-tag">DEMO</span>
+        </div></div>
+      </div>
+      <ol class="notes">
+        <li><span><b>Search</b> box sized for thumbs.</span></li>
+        <li><span><b>Quick filters</b> (Open, Overdue, My projects) plus scope and status filters. The row scrolls sideways.</span></li>
+        <li><span><b>Project cards</b> show number, name, client, scope summary, due date, status and progress. Overdue cards have a heavy border.</span></li>
+        <li><span><b>Tap a card</b> to open the project (M3).</span></li>
+      </ol>
+    </article>
+  </div>
+
+  <div class="screen mob-pair">
+    <!-- M3 -->
+    <article class="mob" id="m3">
+      <div>
+        <div class="sh"><span class="code">M3</span><h3>Project Details</h3></div>
+        <div class="scaler" data-w="390" data-h="844"><div class="cv phone">
+          <div class="sbar"><span>9:41</span><i></i></div>
+          <div class="mhead"><span class="back">&lsaquo;</span><h4>CRM-2026-0142</h4><span class="grow"></span><span style="font-size:18px">&#8943;</span></div>
+          <div class="mbody" style="gap:10px">
+            <div style="position:relative"><span class="co">1</span>
+              <div style="font-size:17px;font-weight:600;color:#2b2b2b">Reactor Vessel R-301 Lift</div>
+              <div class="row" style="margin-top:4px"><span class="st prog">In Progress</span><span class="pri High">High</span><span style="font-size:12px">Meridian Petrochem</span></div>
+            </div>
+            <div class="b" style="border-radius:8px;padding:10px 12px"><span class="co">2</span>
+              <div class="pg" style="font-size:15px;font-weight:600"><span style="height:10px"><i style="width:58%"></i></span>58%</div>
+              <div style="display:grid;grid-template-columns:1fr 1fr;gap:4px 10px;font-size:12px;margin-top:8px">
+                <span>Requested <b>28 Sep</b></span><span>Due <b>24 Oct</b></span><span>PM <b>L. Santos</b></span><span>Sales <b>A. Reyes</b></span>
+              </div>
+            </div>
+            <div class="sect">Engineering scopes (4)</div>
+            <div class="mcard" style="padding:10px 12px;gap:4px"><div class="meta2"><b>Route Survey</b><span class="st done">Done</span></div><div class="meta2"><span>M. Tan &middot; due 09 Oct</span><span>&#9662;</span></div></div>
+            <div class="mcard" style="padding:10px 12px;border:2px solid #3a3a3a"><span class="co">3</span>
+              <div class="meta2"><b>Lifting</b><span class="st prog">In Progress</span></div>
+              <div style="font-size:12px">J. Cruz &middot; 12 Oct &ndash; <b>22 Oct</b> &middot; after Route Survey</div>
+              <div class="pg"><span style="height:9px"><i style="width:60%"></i></span>60%</div>
+              <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:4px"><span class="btn tap" style="justify-content:center;border-radius:8px">Update progress</span><span class="btn ghost tap" style="justify-content:center;border-radius:8px">Add note</span></div>
+            </div>
+            <div class="mcard" style="padding:10px 12px;gap:4px"><div class="meta2"><b>MS Study</b><span class="st prog">50%</span></div><div class="meta2"><span>J. Cruz &middot; due 20 Oct</span><span>&#9662;</span></div></div>
+            <div class="mcard" style="padding:10px 12px;gap:4px"><div class="meta2"><b>DWG</b><span class="st prog">20%</span></div><div class="meta2"><span>K. Bautista &middot; due 24 Oct</span><span>&#9662;</span></div></div>
+            <div class="tabs" style="position:relative"><span class="on">Tasks</span><span>Milestones</span><span>Activity</span><span class="co">4</span></div>
+          </div>
+          <nav class="mnav" data-mnav="Projects"></nav>
+          <span class="demo-tag">DEMO</span>
+        </div></div>
+      </div>
+      <ol class="notes">
+        <li><span><b>Project header</b>: number, name, status, priority and client.</span></li>
+        <li><span><b>Overall progress</b> with the key dates and people.</span></li>
+        <li><span><b>Scope cards</b> expand on tap. An engineer can update progress or add a note to their scope from site.</span></li>
+        <li><span><b>Tasks, milestones and activity history</b> below. Edit and the other actions are under the &#8943; menu.</span></li>
+      </ol>
+    </article>
+
+    <!-- M4 -->
+    <article class="mob" id="m4">
+      <div>
+        <div class="sh"><span class="code">M4</span><h3>Create / Edit Project</h3></div>
+        <div class="scaler" data-w="390" data-h="844"><div class="cv phone">
+          <div class="sbar"><span>9:41</span><i></i></div>
+          <div class="mhead"><span class="back">&times;</span><h4>New project</h4><span class="grow"></span><span style="font-size:12px">Step 1 of 2</span></div>
+          <div class="mbody" style="gap:12px">
+            <div class="field"><label>Project number <span class="rq">*</span></label><div class="inp err tap" style="border-radius:8px">CRM-2026-0138</div><span class="errmsg">Already used. Try CRM-2026-0146.</span><span class="co">1</span></div>
+            <div class="field"><label>Project name <span class="rq">*</span></label><div class="inp tap" style="border-radius:8px">Flare Stack Replacement Lift</div></div>
+            <div class="field"><label>Client <span class="rq">*</span></label><div class="inp sel tap" style="border-radius:8px">Vista Chemicals</div></div>
+            <div class="field"><label>Engineering scope <span class="rq">*</span></label><span class="co">2</span>
+              <div style="display:flex;flex-wrap:wrap;gap:8px">
+                <span class="chip on" style="padding:6px 12px">&#10003; Lifting</span><span class="chip" style="padding:6px 12px">Transport</span><span class="chip" style="padding:6px 12px">Jacking &amp; Skidding</span><span class="chip" style="padding:6px 12px">Shutdown</span><span class="chip" style="padding:6px 12px">Bridging</span><span class="chip on" style="padding:6px 12px">&#10003; GBP Calculation</span><span class="chip" style="padding:6px 12px">Route Survey</span><span class="chip on" style="padding:6px 12px">&#10003; MS Study</span><span class="chip on" style="padding:6px 12px">&#10003; DWG</span>
+              </div>
+            </div>
+            <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;position:relative"><span class="co">3</span>
+              <div class="field"><label>Start date</label><div class="inp date tap" style="border-radius:8px">02 Nov 2026</div></div>
+              <div class="field"><label>Due date <span class="rq">*</span></label><div class="inp date tap" style="border-radius:8px">20 Nov 2026</div></div>
+            </div>
+            <div class="field"><label>Project manager <span class="rq">*</span></label><div class="inp sel tap" style="border-radius:8px">L. Santos</div><span class="co">4</span></div>
+            <div class="hint">Step 2 sets the engineer and deadline for each selected scope.</div>
+          </div>
+          <div class="stick" style="position:relative"><span class="btn ghost">Cancel</span><span class="btn pri">Next: scopes &rsaquo;</span><span class="co" style="top:2px;right:6px">5</span></div>
+          <span class="demo-tag" style="bottom:96px">DEMO</span>
+        </div></div>
+      </div>
+      <ol class="notes">
+        <li><span><b>Stacked fields</b> with the error message right under the field.</span></li>
+        <li><span><b>Scope selection</b> as large tap chips. Several can be chosen.</span></li>
+        <li><span><b>Date fields</b> open the phone's own date picker.</span></li>
+        <li><span><b>Pickers</b> for client, salesperson, PM and engineers.</span></li>
+        <li><span><b>Save and Cancel</b> stay pinned at the bottom. The form is split into two steps so it fits a phone.</span></li>
+      </ol>
+    </article>
+  </div>
+
+  <div class="screen mob-pair">
+    <!-- M5 -->
+    <article class="mob" id="m5">
+      <div>
+        <div class="sh"><span class="code">M5</span><h3>Timeline</h3></div>
+        <div class="scaler" data-w="390" data-h="844"><div class="cv phone">
+          <div class="sbar"><span>9:41</span><i></i></div>
+          <div class="mhead"><h4>Timeline</h4><span class="grow"></span><span class="chip on">List</span><span class="chip">Bars</span><span class="co" style="right:6px;top:4px">1</span></div>
+          <div class="mbody" style="gap:8px">
+            <div class="row" style="flex-wrap:nowrap"><span class="chip">Engineer &#9662;</span><span class="chip">Scope &#9662;</span><span class="chip on">Open only</span></div>
+            <div class="sect" style="color:#111">&#9632; Overdue</div>
+            <div class="mcard over" style="padding:10px 12px;gap:3px"><span class="co">2</span><div class="meta2"><b>Tank T-7 Jacking Procedure</b><span class="flag">3 d</span></div><div style="font-size:12px">Project &middot; 27 Aug &ndash; 16 Oct &middot; R. Lim</div><div class="pg"><span><i style="width:55%"></i></span>55%</div></div>
+            <div class="mcard over" style="padding:10px 12px;gap:3px"><div class="meta2"><b>Heat Exchanger E-12</b><span class="flag">4 d</span></div><div style="font-size:12px">Project &middot; 22 Sep &ndash; 15 Oct &middot; Waiting for Client</div></div>
+            <div class="sect">Today &middot; Mon 19 Oct</div>
+            <div class="mcard" style="padding:10px 12px;gap:3px;border-color:#111"><div class="meta2"><b>Substation B Transformer</b><span class="flag today">Today</span></div><div class="pg"><span><i style="width:85%"></i></span>85%</div></div>
+            <div class="sect">This week</div>
+            <div style="display:grid;grid-template-columns:44px 1fr;gap:0 10px;font-size:12px;position:relative"><span class="co">3</span>
+              <span class="d" style="font-family:var(--f-mono);font-size:11px;padding-top:6px">20 Oct</span><div style="border-left:2px solid #3a3a3a;padding:4px 0 8px 10px">MS Study &middot; R-301 <span class="tag">Scope</span><div class="pg" style="margin-top:3px"><span><i style="width:50%"></i></span>50%</div></div>
+              <span class="d" style="font-family:var(--f-mono);font-size:11px;padding-top:6px">22 Oct</span><div style="border-left:2px solid #3a3a3a;padding:4px 0 8px 10px">Lifting &middot; R-301 <span class="tag">Scope</span><div class="pg" style="margin-top:3px"><span><i style="width:60%"></i></span>60%</div></div>
+              <span class="d" style="font-family:var(--f-mono);font-size:11px;padding-top:6px">23 Oct</span><div style="border-left:2px solid #3a3a3a;padding:4px 0 8px 10px">&#9670; Client approval &middot; R-301 <span class="tag">Milestone</span></div>
+            </div>
+          </div>
+          <nav class="mnav" data-mnav="Timeline"></nav>
+          <span class="demo-tag">DEMO</span>
+        </div></div>
+      </div>
+      <ol class="notes">
+        <li><span><b>List view by default.</b> A simple scrollable bar view is available for those who want it.</span></li>
+        <li><span><b>Overdue first</b>, with days late shown in black.</span></li>
+        <li><span><b>Chronological list</b> of project deadlines, scope deadlines and milestones, each with progress. Tap any item to open the project.</span></li>
+      </ol>
+    </article>
+
+    <!-- M6 -->
+    <article class="mob" id="m6">
+      <div>
+        <div class="sh"><span class="code">M6</span><h3>Notifications</h3></div>
+        <div class="scaler" data-w="390" data-h="844"><div class="cv phone">
+          <div class="sbar"><span>9:41</span><i></i></div>
+          <div class="mhead"><h4>Notifications</h4><span class="grow"></span><span style="font-size:12px;text-decoration:underline">Mark all read</span></div>
+          <div class="mbody" style="gap:6px">
+            <div class="row" style="position:relative"><span class="chip on">Unread 4</span><span class="chip">All</span><span class="chip">Overdue</span><span class="chip">Due today</span><span class="co" style="right:-4px">1</span></div>
+            <div class="sect" style="margin-top:6px">Today</div>
+            <div class="nt unread tap"><span class="u"></span><span class="x"><span class="flag">Overdue</span><br><b>Tank T-7 Jacking Procedure</b><small>Project CRM-2026-0116 &middot; 3 days late</small></span><span>&rsaquo;</span><span class="co" style="top:4px;right:-4px">2</span></div>
+            <div class="nt unread tap"><span class="u"></span><span class="x"><span class="flag today">Due today</span><br><b>Substation B Transformer Move</b><small>Project CRM-2026-0138</small></span><span>&rsaquo;</span></div>
+            <div class="nt unread tap"><span class="u"></span><span class="x"><span class="tag">Scope &middot; 1 day</span><br><b>MS Study</b> due tomorrow<small>CRM-2026-0142 Reactor Vessel R-301</small></span><span>&rsaquo;</span><span class="co" style="top:4px;right:-4px">3</span></div>
+            <div class="nt unread tap"><span class="u"></span><span class="x"><span class="tag">Scope &middot; 3 days</span><br><b>Lifting</b> due 22 Oct<small>CRM-2026-0142</small></span><span>&rsaquo;</span></div>
+            <div class="sect" style="margin-top:6px">Earlier</div>
+            <div class="nt tap"><span class="u"></span><span class="x"><span class="flag">Overdue</span> Heat Exchanger E-12<small>CRM-2026-0131 &middot; read</small></span><span>&rsaquo;</span></div>
+            <div class="nt tap"><span class="u"></span><span class="x"><span class="tag">7 days</span> Unit 3 Shutdown Lift Plan<small>CRM-2026-0127 &middot; read</small></span><span>&rsaquo;</span><span class="co" style="top:4px;right:-4px">4</span></div>
+          </div>
+          <nav class="mnav" data-mnav="Alerts"></nav>
+          <span class="demo-tag">DEMO</span>
+        </div></div>
+      </div>
+      <ol class="notes">
+        <li><span><b>Filters</b> for unread, all, overdue and due today, plus Mark all read.</span></li>
+        <li><span><b>Project-level alerts</b>: overdue and due today.</span></li>
+        <li><span><b>Scope-level reminders</b> say which scope is due and when.</span></li>
+        <li><span><b>Read items</b> lose the black dot. Tapping any alert opens the affected project and marks it as read.</span></li>
+      </ol>
+    </article>
+  </div>
+</section>
+
+<!-- ================= FLOW ================= -->
+<section class="part" id="flow">
+  <h2>How people move through the system</h2>
+  <p class="lede">The main path from sign-in to a deadline alert, followed by the five everyday tasks.</p>
+  <div class="screen flow">
+    <div class="flow-main">
+      <div class="fn start">Sign in<small>own account &amp; role</small></div><div class="arr"></div>
+      <div class="fn">Dashboard<small>D1 &middot; M1</small></div><div class="arr"></div>
+      <div class="fn">Project Tracker<small>D2 &middot; M2</small></div><div class="arr"></div>
+      <div class="fn">Project Details<small>D3 &middot; M3</small></div><div class="arr"></div>
+      <div class="fn">Engineering Scopes<small>inside D3 &middot; M3</small></div><div class="arr"></div>
+      <div class="fn">Timeline<small>D5 &middot; M5</small></div><div class="arr"></div>
+      <div class="fn">Notifications<small>D6 &middot; M6</small></div>
+    </div>
+    <div class="alts">
+      <div class="alt"><h4>Create a project</h4><ol><li>Tracker &rarr; <b>+ Add Project</b></li><li>Fill project info, tick scopes, set dates</li><li>Set engineer and due date per scope</li><li><b>Save</b> &rarr; project number checked &rarr; Project Details opens</li></ol></div>
+      <div class="alt"><h4>Assign an engineer</h4><ol><li>Project Details &rarr; scope row &rarr; <b>&#8943; Edit</b></li><li>Pick engineer &rarr; Save</li><li>Engineer gets an in-app notice; change logged in history</li></ol></div>
+      <div class="alt"><h4>Update progress (engineer, on phone)</h4><ol><li>Notification or Projects &rarr; open project</li><li>Tap own scope card &rarr; <b>Update progress</b></li><li>Set % and status, add note or photo</li><li>Project progress recalculates; dashboard updates</li></ol></div>
+      <div class="alt"><h4>Receive a deadline reminder</h4><ol><li>Server checks deadlines every day, even with nobody logged in</li><li>Sends 7 / 3 / 1-day, due-today or overdue alert (never twice)</li><li>Bell count rises; optional browser or email alert</li><li>Tap &rarr; project opens &rarr; alert marked read</li></ol></div>
+      <div class="alt"><h4>Complete a project</h4><ol><li>All scopes reach 100% / Completed</li><li>PM sets project status to <b>Completed</b></li><li>Actual completion date recorded; reminders stop</li><li>Project moves to Completed reports; archive later if wanted</li></ol></div>
+    </div>
+  </div>
+</section>
+
+<!-- ================= QUESTIONS ================= -->
+<section class="part" id="questions">
+  <h2>Points to confirm</h2>
+  <p class="lede">These decisions shape the next stage. A proposed answer is given for each. Please confirm or correct.</p>
+  <div class="screen qs">
+    <div class="q"><h4>Q1 &middot; Engineering scope list</h4><p>Are these the nine scope types, with these names?</p><div class="scope-list"><span>Lifting</span><span>Transport</span><span>Jacking &amp; Skidding</span><span>Shutdown</span><span>Bridging</span><span>GBP Calculation</span><span>Route Survey</span><span>MS Study</span><span>DWG</span></div><p style="margin-top:8px" class="prop"><b>Proposed:</b> administrators can add or rename scopes later.</p></div>
+    <div class="q"><h4>Q2 &middot; How overall progress is calculated</h4><p>A project's progress needs one consistent rule.</p><p class="prop"><b>Proposed:</b> simple average of its scopes (example above: 100, 60, 50, 20 &rarr; 58%). Alternatives: weight by scope duration, or let the PM override with a reason.</p></div>
+    <div class="q"><h4>Q3 &middot; Project number format</h4><p>Do you have an existing numbering scheme to keep?</p><p class="prop"><b>Proposed:</b> CRM-YYYY-NNNN, generated automatically and editable for imported projects. Duplicates are always blocked.</p></div>
+    <div class="q"><h4>Q4 &middot; Who receives reminders</h4><p>Reminder steps are 7, 3 and 1 day before, on the day, and overdue.</p><p class="prop"><b>Proposed:</b> the assigned engineer gets every step; the project manager gets 1-day, due-today and overdue; the salesperson only gets overdue. Email depends on a company mail account.</p></div>
+    <div class="q"><h4>Q5 &middot; Statuses</h4><p>New Request, For Review, In Progress, On Hold, Waiting for Client, Waiting for Engineering, Completed, Cancelled.</p><p class="prop"><b>Proposed:</b> use these for both projects and scopes. Is anything missing from your current workflow?</p></div>
+    <div class="q"><h4>Q6 &middot; Milestones</h4><p>Shown as examples: Request Received, Engineering Review, Scope Confirmation, Calculation Completed, Drawing Completed, Client Approval, Project Completion.</p><p class="prop"><b>Proposed:</b> a default milestone set added to each new project, editable per project. Please share your real steps.</p></div>
+    <div class="q"><h4>Q7 &middot; Who can see what</h4><p>Roles: Administrator, Project Manager, Engineer, Salesperson.</p><p class="prop"><b>Proposed:</b> engineers see projects they are assigned to; salespeople see their own clients' projects; PMs and admins see all.</p></div>
+    <div class="q"><h4>Q8 &middot; Existing data</h4><p>Is there a current tracking sheet to import at launch?</p><p class="prop"><b>Proposed:</b> a one-time import from Excel or CSV, if you can share the file layout.</p></div>
+  </div>
+</section>
+
+<footer class="foot">
+  <span>Engineering Project CRM &amp; Tracker &middot; Low-fidelity wireframes v0.1 &middot; 19 October 2026</span>
+  <span>All names, clients and projects are fictional sample data. Final look and wording to follow in the polished mockups.</span>
+</footer>
+</div>
+
+<script>
+(function () {
+  var NAV = [['Dashboard'], ['Projects'], ['Timeline'], ['Calendar'], ['Notifications', 4], ['Reports'], ['Clients']];
+  document.querySelectorAll('[data-side]').forEach(function (el) {
+    var on = el.getAttribute('data-side');
+    var h = '<div class="logo"><i></i><span>EngTrack<small>Project CRM</small></span></div>';
+    NAV.forEach(function (n) {
+      h += '<div class="nav' + (n[0] === on ? ' on' : '') + '"><i></i>' + n[0] + (n[1] ? '<span class="ct">' + n[1] + '</span>' : '') + '</div>';
+    });
+    h += '<div class="spacer"></div><div class="nav"><i></i>Settings</div><div class="nav"><i></i>Help</div>';
+    el.innerHTML = h;
+  });
+  document.querySelectorAll('[data-top]').forEach(function (el) {
+    el.innerHTML = '<div class="search">Search projects, CRM no., clients&hellip;</div><span class="grow"></span>' +
+      '<span class="bell">&#9711;<span class="dot">4</span></span><span class="avatar"></span>' +
+      '<span class="who"><b>L. Santos</b>Project Manager &#9662;</span>';
+  });
+  var MN = [['Home'], ['Projects'], ['Timeline'], ['Alerts', 4], ['More']];
+  document.querySelectorAll('[data-mnav]').forEach(function (el) {
+    var on = el.getAttribute('data-mnav');
+    el.innerHTML = MN.map(function (n) {
+      return '<span class="' + (n[0] === on ? 'on' : '') + '"><i></i>' + n[0] + (n[1] ? '<span class="ct">' + n[1] + '</span>' : '') + '</span>';
+    }).join('');
+  });
+
+  var ST = { 'New Request': 'new', 'For Review': 'review', 'In Progress': 'prog', 'On Hold': 'hold', 'Waiting for Client': 'wait', 'Waiting for Engineering': 'wait', 'Completed': 'done', 'Cancelled': 'cancel' };
+  var P = [
+    { no: 'CRM-2026-0116', name: 'Tank T-7 Jacking Procedure', client: 'Coastal Refining', scopes: ['Jacking & Skidding', 'MS Study', 'DWG'], sales: 'S. Villanueva', eng: 'R. Lim +1', req: '20 Aug 2026', start: '27 Aug 2026', due: '16 Oct 2026', pri: 'High', st: 'In Progress', pg: 55, flag: 'over', late: '3 d' },
+    { no: 'CRM-2026-0131', name: 'Heat Exchanger E-12 Skid-in', client: 'Coastal Refining', scopes: ['Jacking & Skidding', 'GBP Calculation'], sales: 'A. Reyes', eng: 'R. Lim', req: '14 Sep 2026', start: '22 Sep 2026', due: '15 Oct 2026', pri: 'High', st: 'Waiting for Client', pg: 70, flag: 'over', late: '4 d' },
+    { no: 'CRM-2026-0138', name: 'Substation B Transformer Move', client: 'Northgrid Power', scopes: ['Transport', 'Route Survey', 'Bridging'], sales: 'D. Ocampo', eng: 'M. Tan', req: '21 Sep 2026', start: '28 Sep 2026', due: '19 Oct 2026', pri: 'Critical', st: 'In Progress', pg: 85, flag: 'today' },
+    { no: 'CRM-2026-0142', name: 'Reactor Vessel R-301 Lift', client: 'Meridian Petrochem', scopes: ['Lifting', 'Route Survey', 'MS Study', 'DWG'], sales: 'A. Reyes', eng: 'J. Cruz +2', req: '28 Sep 2026', start: '01 Oct 2026', due: '24 Oct 2026', pri: 'High', st: 'In Progress', pg: 58 },
+    { no: 'CRM-2026-0127', name: 'Unit 3 Shutdown Lift Plan', client: 'Vista Chemicals', scopes: ['Shutdown', 'Lifting', 'DWG'], sales: 'D. Ocampo', eng: 'K. Bautista', req: '05 Oct 2026', start: '12 Oct 2026', due: '30 Oct 2026', pri: 'Normal', st: 'For Review', pg: 20 },
+    { no: 'CRM-2026-0124', name: 'Pipe Rack Module Transport', client: 'Harbor Fabricators', scopes: ['Transport', 'GBP Calculation'], sales: 'S. Villanueva', eng: 'M. Tan', req: '02 Sep 2026', start: '15 Sep 2026', due: '06 Nov 2026', pri: 'Normal', st: 'On Hold', pg: 40 },
+    { no: 'CRM-2026-0145', name: 'Column C-4 Erection Study', client: 'Meridian Petrochem', scopes: ['MS Study'], sales: 'A. Reyes', eng: 'Unassigned', req: '16 Oct 2026', start: '—', due: '14 Nov 2026', pri: 'Normal', st: 'New Request', pg: 0 },
+    { no: 'CRM-2026-0119', name: 'Module Route Bridge Check', client: 'Northgrid Power', scopes: ['Bridging', 'Route Survey'], sales: 'D. Ocampo', eng: 'J. Cruz', req: '25 Aug 2026', start: '01 Sep 2026', due: '12 Oct 2026', pri: 'Low', st: 'Completed', pg: 100 }
+  ];
+  function esc(s) { return String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;'); }
+  function scopeSum(s) { return '<span class="tag">' + esc(s[0].replace('Jacking & Skidding', 'Jacking & Skid.')) + '</span>' + (s.length > 1 ? ' <span class="tag">+' + (s.length - 1) + '</span>' : ''); }
+  function badge(st) { return '<span class="st ' + ST[st] + '">' + esc(st) + '</span>'; }
+  function pg(v) { return '<div class="pg"><span><i style="width:' + v + '%"></i></span>' + v + '%</div>'; }
+
+  var trk = document.getElementById('trk');
+  if (trk) trk.innerHTML = P.map(function (p) {
+    var sd = function (s) { return s.slice(0, 6); };
+    var due = esc(sd(p.due)) + (p.flag === 'over' ? ' <span class="flag">' + p.late + '</span>' : p.flag === 'today' ? ' <span class="flag today">Today</span>' : '');
+    return '<tr class="' + (p.flag === 'over' ? 'over' : '') + '"><td class="num">' + p.no + '</td><td><b>' + esc(p.name) + '</b></td><td>' + esc(p.client) + '</td><td>' + scopeSum(p.scopes) +
+      '</td><td>' + p.sales + '</td><td>' + p.eng + '</td><td>' + sd(p.req) + '</td><td>' + sd(p.start) + '</td><td>' + due + '</td><td><span class="pri ' + p.pri + '">' + p.pri + '</span></td><td>' + badge(p.st) + '</td><td>' + pg(p.pg) + '</td><td>&#8943;</td></tr>';
+  }).join('');
+
+  var ml = document.getElementById('mlist');
+  if (ml) ml.innerHTML = P.slice(0, 4).map(function (p, i) {
+    var f = p.flag === 'over' ? '<span class="flag">' + p.late + ' late</span>' : p.flag === 'today' ? '<span class="flag today">Due today</span>' : '';
+    return '<div class="mcard tap' + (p.flag === 'over' ? ' over' : '') + '">' + (i === 0 ? '<span class="co">3</span>' : i === 2 ? '<span class="co">4</span>' : '') +
+      '<div class="num"><span>' + p.no + '</span>' + f + '</div><div class="nm">' + esc(p.name) + '</div>' +
+      '<div style="font-size:12px">' + esc(p.client) + ' &middot; ' + scopeSum(p.scopes) + '</div>' +
+      '<div class="meta2"><span>Due <b>' + p.due.slice(0, 6) + '</b></span>' + badge(p.st) + '</div>' + pg(p.pg) + '</div>';
+  }).join('');
+
+  // Gantt: 05 Oct - 15 Nov 2026, 19px per day
+  var g = document.getElementById('gantt');
+  if (g) {
+    var D0 = Date.UTC(2026, 9, 5), PX = 19, DAYS = 42, TODAY = 14;
+    function dx(m, d) { return Math.round((Date.UTC(2026, m - 1, d) - D0) / 864e5); }
+    var R = [
+      { p: 1, n: '▾ CRM-2026-0116 Tank T-7 Jacking', w: 'R. Lim', st: 'Overdue', s: [8, 27], e: [10, 16], pg: 55, over: 1 },
+      { n: 'Jacking & Skidding', w: 'R. Lim', st: '70%', s: [9, 1], e: [10, 16], pg: 70, over: 1 },
+      { n: 'MS Study', w: 'K. Bautista', st: 'Done', s: [9, 20], e: [10, 9], pg: 100, done: 1 },
+      { n: 'DWG', w: 'R. Lim', st: '30%', s: [10, 12], e: [10, 16], pg: 30, over: 1 },
+      { p: 1, n: '▾ CRM-2026-0131 Heat Exchanger E-12', w: 'R. Lim', st: 'Overdue', s: [9, 22], e: [10, 15], pg: 70, over: 1 },
+      { n: 'Jacking & Skidding', w: 'R. Lim', st: '60%', s: [9, 22], e: [10, 15], pg: 60, over: 1 },
+      { n: 'GBP Calculation', w: 'K. Bautista', st: 'Done', s: [10, 1], e: [10, 10], pg: 100, done: 1 },
+      { p: 1, n: '▾ CRM-2026-0138 Substation B', w: 'M. Tan', st: 'Today', s: [9, 28], e: [10, 19], pg: 85 },
+      { n: 'Route Survey', w: 'M. Tan', st: 'Done', s: [9, 28], e: [10, 8], pg: 100, done: 1 },
+      { n: 'Bridging', w: 'J. Cruz', st: 'Done', s: [10, 5], e: [10, 16], pg: 100, done: 1 },
+      { n: 'Transport', w: 'M. Tan', st: '80%', s: [10, 6], e: [10, 19], pg: 80 },
+      { p: 1, n: '▾ CRM-2026-0142 Reactor Vessel R-301', w: 'L. Santos', st: '58%', s: [10, 1], e: [10, 24], pg: 58, ms: [10, 23] },
+      { n: 'Route Survey', w: 'M. Tan', st: 'Done', s: [10, 1], e: [10, 9], pg: 100, done: 1, id: 'rs' },
+      { n: 'Lifting', w: 'J. Cruz', st: '60%', s: [10, 12], e: [10, 22], pg: 60, id: 'lf' },
+      { n: 'MS Study', w: 'J. Cruz', st: '50%', s: [10, 12], e: [10, 20], pg: 50 },
+      { n: 'DWG', w: 'K. Bautista', st: '20%', s: [10, 15], e: [10, 24], pg: 20 },
+      { p: 1, n: '▸ CRM-2026-0127 Unit 3 Shutdown (3)', w: 'K. Bautista', st: 'Review', s: [10, 12], e: [10, 30], pg: 20 },
+      { p: 1, n: '▸ CRM-2026-0124 Pipe Rack Module (2)', w: 'M. Tan', st: 'On hold', s: [9, 15], e: [11, 6], pg: 40, hold: 1 },
+      { p: 1, n: '▸ CRM-2026-0145 Column C-4 (1)', w: 'Unassigned', st: 'New', s: [10, 26], e: [11, 14], pg: 0 }
+    ];
+    var L = '<div class="g-left"><div class="g-head"><span>Project / scope</span><span>Owner</span><span>Status</span></div>';
+    var Rt = '<div class="g-right"><div class="g-head">';
+    var wk = ['05 Oct', '12 Oct', '19 Oct', '26 Oct', '02 Nov', '09 Nov'];
+    for (var w = 0; w < 6; w++) Rt += '<span class="g-wk" style="left:' + (w * 7 * PX) + 'px;width:' + (7 * PX) + 'px">Week of ' + wk[w] + '</span>';
+    var dn = 'MTWTFSS';
+    for (var d = 0; d < DAYS; d++) Rt += '<span class="g-day" style="left:' + (d * PX) + 'px;width:' + PX + 'px">' + dn[d % 7] + '</span>';
+    Rt += '</div>';
+    for (w = 1; w < 6; w++) Rt += '<span class="g-grid" style="left:' + (w * 7 * PX) + 'px"></span>';
+    Rt += '<span class="g-today" style="left:' + (TODAY * PX + PX / 2) + 'px"><span>Today 19 Oct</span></span>';
+    var y = {};
+    R.forEach(function (r, i) {
+      L += '<div class="g-row ' + (r.p ? 'p' : 's') + '"><span class="nm">' + esc(r.n) + '</span><span>' + r.w + '</span><span>' + (r.over ? '<span class="flag">Late</span>' : esc(r.st)) + '</span></div>';
+      var a = Math.max(0, dx(r.s[0], r.s[1])), b = Math.min(DAYS, dx(r.e[0], r.e[1]) + 1);
+      var cls = 'g-bar' + (r.over ? ' over' : '') + (r.hold ? ' hold' : '') + (r.done ? ' done' : '');
+      var clipped = dx(r.s[0], r.s[1]) < 0 ? 'border-left-style:dotted;' : '';
+      var right = dx(r.e[0], r.e[1]) + 1 > DAYS ? 'border-right-style:dotted;' : '';
+      Rt += '<div class="g-row ' + (r.p ? 'p' : 's') + '"><div class="' + cls + '" style="' + clipped + right + 'left:' + (a * PX) + 'px;width:' + ((b - a) * PX) + 'px"><i style="width:' + r.pg + '%"></i></div>';
+      if (b < DAYS - 3) Rt += '<span class="g-lbl" style="left:' + (b * PX + 6) + 'px">' + r.pg + '%' + (r.over ? ' · overdue' : '') + '</span>';
+      if (r.ms) Rt += '<span class="g-ms" style="left:' + (dx(r.ms[0], r.ms[1]) * PX + PX / 2) + 'px"></span>';
+      Rt += '</div>';
+      if (r.id) y[r.id] = { i: i, a: a, b: b };
+    });
+    if (y.rs && y.lf) {
+      var top = 46 + y.rs.i * 29 + 15, x = y.rs.b * PX;
+      Rt += '<svg style="position:absolute;left:0;top:0;overflow:visible;z-index:4" width="1" height="1"><path d="M' + x + ' ' + top + ' h8 v29 h' + (y.lf.a * PX - x - 12) + '" fill="none" stroke="#111" stroke-width="1.5"/><path d="M' + (y.lf.a * PX - 1) + ' ' + (top + 29) + ' l-6 -4 v8 z" fill="#111"/></svg>';
+    }
+    Rt += '</div>';
+    g.innerHTML = L + '</div>' + Rt;
+    var gr = g.querySelector('.g-right');
+    gr.insertAdjacentHTML('beforeend', '<span class="co" style="top:58px;left:150px;right:auto">4</span><span class="co" style="top:' + (46 + 11 * 29) + 'px;left:' + (dx(10, 23) * PX + 20) + 'px;right:auto">5</span>');
+    g.querySelector('.g-left').insertAdjacentHTML('beforeend', '<span class="co" style="top:52px;right:-10px">3</span>');
+  }
+
+  // Calendar: October 2026, weeks start Monday 28 Sep
+  var cal = document.getElementById('cal');
+  if (cal) {
+    var E = {
+      '9': [['Route Survey · 0142', 'done']],
+      '10': [['GBP Calc · 0131', 'done']],
+      '12': [['0119 Bridge Check', 'proj done']],
+      '15': [['0131 Heat Exchanger', 'proj over']],
+      '16': [['0116 Tank T-7', 'proj over'], ['DWG · 0116', 'over'], ['Bridging · 0138', 'done']],
+      '19': [['0138 Substation B', 'proj'], ['Transport · 0138', '']],
+      '20': [['MS Study · 0142', '']],
+      '22': [['Lifting · 0142', '']],
+      '23': [['Client approval · 0142', 'ms'], ['Planned finish · 0142', '']],
+      '24': [['0142 Reactor R-301', 'proj'], ['DWG · 0142', '']],
+      '26': [['Start · 0145', 'ms']],
+      '30': [['0127 Unit 3 Shutdown', 'proj']]
+    };
+    var h = '';
+    ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'].forEach(function (d) { h += '<div class="hd">' + d + '</div>'; });
+    for (var c = 0; c < 35; c++) {
+      var day = c - 2; // 28 Sep is index 0 -> Oct 1 is index 3
+      var inMonth = day >= 1 && day <= 31;
+      var lbl = inMonth ? day : (day < 1 ? 30 + day - 1 + 1 : day - 31);
+      if (day < 1) lbl = [28, 29, 30][c];
+      h += '<div class="' + (inMonth ? '' : 'out') + (day === 19 ? ' today' : '') + '"><span class="dn">' + lbl + '</span>';
+      (inMonth && E[day] ? E[day] : []).forEach(function (e) { h += '<span class="ev ' + e[1] + '">' + esc(e[0]) + '</span>'; });
+      h += '</div>';
+    }
+    cal.innerHTML = h;
+  }
+
+  // Scale each true-size frame to fit its column
+  function fit() {
+    document.querySelectorAll('.scaler').forEach(function (s) {
+      var w = +s.getAttribute('data-w'), hh = +s.getAttribute('data-h');
+      var k = Math.min(1, s.clientWidth / w);
+      var cv = s.firstElementChild;
+      cv.style.transform = 'scale(' + k + ')';
+      s.style.height = (hh * k) + 'px';
+    });
+  }
+  fit();
+  if (window.ResizeObserver) {
+    var ro = new ResizeObserver(fit);
+    document.querySelectorAll('.scaler').forEach(function (s) { ro.observe(s); });
+  } else {
+    window.addEventListener('resize', fit);
+  }
+})();
+</script>
+</body>
+</html>

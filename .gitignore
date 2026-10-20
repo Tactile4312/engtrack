@@ -1,0 +1,16 @@
+# dependencies and build output (rebuild with npm install / npm run build)
+node_modules/
+prototype/dist/
+
+# local environment and secrets
+.env
+.env.*
+!.env.example
+
+# OS and editor files
+.DS_Store
+Thumbs.db
+desktop.ini
+.vscode/
+.idea/
+*.log
