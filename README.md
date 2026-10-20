@@ -2,6 +2,7 @@
 
 Engineering Project Management CRM & Tracker: projects, nine engineering scopes per project, clients, assignments, deadlines and reminders, Gantt/calendar, dashboards, reports.
 
+- Live prototype: https://tactile4312.github.io/engtrack/ (fictional demo data)
 - Requirements: [REQUIREMENTS.md](REQUIREMENTS.md) (authoritative; confirmed decisions table at the top)
 - Project memory: `Obsidian Vault\Projects\Engineering CRM Tracker\Project Hub.md`
 
@@ -54,6 +55,10 @@ Open `dist/index.html` directly in a browser to use the built prototype without 
 URL options (local file or dev server): `?screen=projects`, `?screen=project&id=CRM-2026-0142`, `?device=mobile`, `?user=u-e1`, `?bar=0` (hide the prototype bar for screenshots).
 
 After `npm run build`, copy `prototype/dist/index.html` to `design/client-share/EngTrack Prototype vX.Y.html` for the client.
+
+## Live prototype (GitHub Pages)
+
+https://tactile4312.github.io/engtrack/ serves `docs/index.html` from the `main` branch. To update it, build, copy `prototype/dist/index.html` to `docs/index.html`, commit and push. GitHub takes a minute or two to publish.
 
 ## Chart and UI notes
 
