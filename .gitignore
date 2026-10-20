@@ -14,3 +14,6 @@ desktop.ini
 .vscode/
 .idea/
 *.log
+
+# graphify output (contains local absolute paths, keep out of the public repo)
+graphify-out/
