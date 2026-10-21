@@ -5,11 +5,11 @@ export default {
     extend: {
       colors: {
         ink: { DEFAULT: '#14202b', 2: '#4a5560', 3: '#7b858f' },
-        line: { DEFAULT: '#dde2e7', 2: '#c5ccd3' },
-        paper: { DEFAULT: '#f4f6f8', 2: '#ffffff' },
-        rail: { DEFAULT: '#152230', 2: '#1e3042', 3: '#8fa3b6' },
-        brand: { DEFAULT: '#2a78d6', 50: '#ecf3fc', 100: '#cde2fb', 600: '#1c5cab', 700: '#184f95' },
-        crit: { DEFAULT: '#c63434', 50: '#fcecec', 700: '#9f2424' },
+        line: { DEFAULT: '#efdde5', 2: '#ddc2cf' },
+        paper: { DEFAULT: '#fbf3f7', 2: '#ffffff' },
+        rail: { DEFAULT: '#3b0f27', 2: '#561a3b', 3: '#dba9c3' },
+        brand: { DEFAULT: '#c72a6b', 50: '#fdecf3', 100: '#f9cfe0', 600: '#a51d55', 700: '#880e40' },
+        crit: { DEFAULT: '#c2410c', 50: '#fdeee6', 700: '#9a3412' },
         warn: { DEFAULT: '#b77a00', 50: '#fdf4dd' },
         good: { DEFAULT: '#127a12', 50: '#e8f5e8' },
       },

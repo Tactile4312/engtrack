@@ -130,14 +130,14 @@ export function Gantt({ projects, compact }: { projects: Project[]; compact?: bo
                     <button
                       onClick={() => go({ page: 'project', id: r.p.id, scopeId: r.s?.id })}
                       title={`${r.s ? r.s.type + ' · ' : ''}${r.p.name}\n${fmt(start)} – ${fmt(due)} · ${prog}% · ${item.status}${late ? ' · overdue' : ''}`}
-                      className={cx('absolute z-[5] overflow-hidden rounded-[4px] border', r.kind === 'project' ? 'top-[8px] h-[18px]' : 'top-[10px] h-[14px]', late ? 'border-crit bg-crit-50' : done ? 'border-[#127a12] bg-good-50' : 'border-[#86b6ef] bg-brand-50', hold && 'border-dashed bg-[repeating-linear-gradient(45deg,#f4f6f8_0_4px,#fff_4px_8px)]')}
+                      className={cx('absolute z-[5] overflow-hidden rounded-[4px] border', r.kind === 'project' ? 'top-[8px] h-[18px]' : 'top-[10px] h-[14px]', late ? 'border-crit bg-crit-50' : done ? 'border-[#127a12] bg-good-50' : 'border-[#ec8fb5] bg-brand-50', hold && 'border-dashed bg-[repeating-linear-gradient(45deg,#f4f6f8_0_4px,#fff_4px_8px)]')}
                       style={{ left: Math.max(0, x(start)), width: Math.max(px, x(due) + px - Math.max(0, x(start))) }}
                     >
                       <span className={cx('absolute inset-y-0 left-0', done ? 'bg-[#127a12]' : late ? 'bg-crit' : r.kind === 'project' ? 'bg-brand-600' : 'bg-brand')} style={{ width: `${prog}%` }} />
                     </button>
                   )}
                   {late && due && (
-                    <span className="absolute top-[15px] z-[4] h-[3px] bg-[repeating-linear-gradient(90deg,#c63434_0_4px,transparent_4px_7px)]" style={{ left: x(due) + px, width: Math.max(0, x(today) - x(due)) }} title="Days past due" />
+                    <span className="absolute top-[15px] z-[4] h-[3px] bg-[repeating-linear-gradient(90deg,#c2410c_0_4px,transparent_4px_7px)]" style={{ left: x(due) + px, width: Math.max(0, x(today) - x(due)) }} title="Days past due" />
                   )}
                   {r.kind === 'project' && r.p.milestones.filter((m) => m.date && !m.done && m.date >= today && m.date >= from && m.date <= to).map((m) => (
                     <span key={m.id} className="absolute top-[9px] z-[6] -translate-x-1/2 text-[#4a3aa7]" style={{ left: x(m.date!) + px / 2 }} title={`${m.name} · ${fmt(m.date)}`}><Diamond size={15} fill="currentColor" stroke="#fff" strokeWidth={1.5} /></span>
@@ -166,7 +166,7 @@ export function Gantt({ projects, compact }: { projects: Project[]; compact?: bo
 }
 
 export function Timeline() {
-  const { visible, today, users, isMobile, go } = useApp();
+  const { visible, today, peopleIn, isMobile, go } = useApp();
   const [proj, setProj] = useState('');
   const [eng, setEng] = useState('');
   const [scope, setScope] = useState('');
@@ -209,7 +209,7 @@ export function Timeline() {
           </div>
         </div>
         <div className="-mx-4 flex gap-2 overflow-x-auto px-4">
-          <select aria-label="Engineer" className={cx(inputCls(), 'h-9 !w-auto')} value={eng} onChange={(e) => setEng(e.target.value)}><option value="">All engineers</option>{users.filter((u) => u.role === 'Engineer').map((u) => <option key={u.id} value={u.id}>{u.name}</option>)}</select>
+          <select aria-label="Engineer" className={cx(inputCls(), 'h-9 !w-auto')} value={eng} onChange={(e) => setEng(e.target.value)}><option value="">All engineers</option>{peopleIn('Engineer').map((u) => <option key={u.id} value={u.id}>{u.name}</option>)}</select>
           <select aria-label="Scope" className={cx(inputCls(), 'h-9 !w-auto')} value={scope} onChange={(e) => setScope(e.target.value)}><option value="">All scopes</option>{SCOPE_TYPES.map((s) => <option key={s}>{s}</option>)}</select>
         </div>
         {mode === 'bars' ? <Gantt projects={projects} compact /> : groups.filter(([, l]) => l.length).map(([g, list]) => (
@@ -237,14 +237,14 @@ export function Timeline() {
       <PageHead title="Timeline" sub="Projects with their engineering scopes underneath. Click a bar to open it." />
       <div className="flex flex-wrap items-center gap-2">
         <select aria-label="Project" className={cx(inputCls(), 'h-9 !w-auto max-w-[260px]')} value={proj} onChange={(e) => setProj(e.target.value)}><option value="">All projects</option>{visible.map((p) => <option key={p.id} value={p.id}>{p.number} · {p.name}</option>)}</select>
-        <select aria-label="Engineer" className={cx(inputCls(), 'h-9 !w-auto')} value={eng} onChange={(e) => setEng(e.target.value)}><option value="">All engineers</option>{users.filter((u) => u.role === 'Engineer').map((u) => <option key={u.id} value={u.id}>{u.name}</option>)}</select>
+        <select aria-label="Engineer" className={cx(inputCls(), 'h-9 !w-auto')} value={eng} onChange={(e) => setEng(e.target.value)}><option value="">All engineers</option>{peopleIn('Engineer').map((u) => <option key={u.id} value={u.id}>{u.name}</option>)}</select>
         <select aria-label="Scope" className={cx(inputCls(), 'h-9 !w-auto')} value={scope} onChange={(e) => setScope(e.target.value)}><option value="">All scopes</option>{SCOPE_TYPES.map((s) => <option key={s}>{s}</option>)}</select>
         <select aria-label="Status" className={cx(inputCls(), 'h-9 !w-auto')} value={status} onChange={(e) => setStatus(e.target.value as 'open' | 'all')}><option value="open">Open projects</option><option value="all">Include completed</option></select>
         <span className="flex-1" />
         <span className="flex flex-wrap items-center gap-3 text-[12px] text-ink-2">
-          <span className="flex items-center gap-1.5"><span className="h-3 w-6 rounded-[3px] border border-[#86b6ef] bg-[linear-gradient(90deg,#2a78d6_55%,#ecf3fc_55%)]" />Progress</span>
-          <span className="flex items-center gap-1.5"><span className="h-3 w-6 rounded-[3px] border border-crit bg-[linear-gradient(90deg,#c63434_55%,#fcecec_55%)]" />Overdue</span>
-          <span className="flex items-center gap-1.5"><span className="h-3 w-6 rounded-[3px] border border-dashed border-[#86b6ef]" />On hold</span>
+          <span className="flex items-center gap-1.5"><span className="h-3 w-6 rounded-[3px] border border-[#ec8fb5] bg-[linear-gradient(90deg,#c72a6b_55%,#fdecf3_55%)]" />Progress</span>
+          <span className="flex items-center gap-1.5"><span className="h-3 w-6 rounded-[3px] border border-crit bg-[linear-gradient(90deg,#c2410c_55%,#fdeee6_55%)]" />Overdue</span>
+          <span className="flex items-center gap-1.5"><span className="h-3 w-6 rounded-[3px] border border-dashed border-[#ec8fb5]" />On hold</span>
           <span className="flex items-center gap-1.5 text-[#4a3aa7]"><Diamond size={12} fill="currentColor" /><span className="text-ink-2">Milestone</span></span>
           <span className="flex items-center gap-1.5"><svg width="20" height="8"><path d="M0 4 H16" stroke="#4a5560" strokeWidth="1.3" /><path d="M14 1 L19 4 L14 7z" fill="#4a5560" /></svg>Depends on</span>
         </span>

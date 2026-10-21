@@ -1,5 +1,8 @@
 import { useState } from 'react';
-import { BarChart3, Building2, CalendarDays, ChevronRight, Mail, Pencil, Phone, Plus, Search } from 'lucide-react';
+import { BarChart3, Building2, CalendarDays, ChevronRight, LogOut, Mail, Pencil, Phone, Plus, Search, Users } from 'lucide-react';
+import { LIVE } from '../lib/cloud';
+import { signOut } from '../components/LiveGate';
+import { PersonModal } from './People';
 import { shortName, useApp } from '../store/AppStore';
 import { PageHead } from '../components/Shell';
 import { Avatar, Button, Card, Empty, StatusBadge } from '../components/ui';
@@ -55,7 +58,7 @@ export function Clients() {
           <h1 className="text-[20px] font-semibold text-ink">Clients</h1>
           {addBtn}
         </div>
-      ) : <PageHead title="Clients" sub={`${s.clients.length} clients · fictional demo records`} actions={addBtn} />}
+      ) : <PageHead title="Clients" sub={LIVE ? `${s.clients.length} clients` : `${s.clients.length} clients · fictional demo records`} actions={addBtn} />}
       <div className={isMobile ? 'grid gap-3' : 'grid grid-cols-[minmax(0,1fr)_420px] items-start gap-4'}>
         <div className="grid gap-3">
           {search}
@@ -64,7 +67,7 @@ export function Clients() {
             {list.map((c) => {
               const ps = projectsOf(c.id);
               return (
-                <button key={c.id} onClick={() => setSel(c.id === sel ? null : c.id)} aria-expanded={c.id === sel} className="flex w-full items-center gap-3 border-b border-line px-4 py-3 text-left last:border-0 hover:bg-[#f6f9fc]">
+                <button key={c.id} onClick={() => setSel(c.id === sel ? null : c.id)} aria-expanded={c.id === sel} className="flex w-full items-center gap-3 border-b border-line px-4 py-3 text-left last:border-0 hover:bg-[#fdf6f9]">
                   <Avatar name={c.name} size={34} />
                   <span className="min-w-0 flex-1">
                     <span className="block truncate text-[13.5px] font-semibold text-ink">{c.name}</span>
@@ -85,17 +88,21 @@ export function Clients() {
 
 export function More() {
   const { go, me, users, dispatch } = useApp();
+  const [editing, setEditing] = useState(false);
   const links = [
     { page: 'calendar', label: 'Calendar', Icon: CalendarDays },
     { page: 'reports', label: 'Reports', Icon: BarChart3 },
     { page: 'clients', label: 'Clients', Icon: Building2 },
+    ...(LIVE ? [{ page: 'people', label: 'People', Icon: Users }] as const : []),
   ] as const;
   return (
     <div className="grid gap-3 p-4">
       <div className="flex items-center gap-3 rounded-xl border border-line bg-white p-4">
         <Avatar name={me.name} size={44} />
-        <div><p className="text-[15px] font-semibold text-ink">{me.name}</p><p className="text-[12.5px] text-ink-3">{me.role} · {me.email}</p></div>
+        <div className="min-w-0 flex-1"><p className="text-[15px] font-semibold text-ink">{me.name}</p><p className="truncate text-[12.5px] text-ink-3">{LIVE ? me.email : `${me.role} · ${me.email}`}</p></div>
+        {LIVE && <Button id="more-edit-name" onClick={() => setEditing(true)}><Pencil size={14} />Edit name</Button>}
       </div>
+      {editing && <PersonModal person={users.find((u) => u.id === me.id)} onClose={() => setEditing(false)} />}
       <div className="overflow-hidden rounded-xl border border-line bg-white">
         {links.map(({ page, label, Icon }) => (
           <button key={page} onClick={() => go({ page })} className="flex min-h-[52px] w-full items-center gap-3 border-b border-line px-4 text-left text-[14.5px] text-ink last:border-0">
@@ -103,12 +110,16 @@ export function More() {
           </button>
         ))}
       </div>
+      {LIVE ? (
+        <button onClick={() => void signOut()} className="flex min-h-[52px] w-full items-center gap-3 rounded-xl border border-line bg-white px-4 text-left text-[14.5px] text-ink"><LogOut size={20} className="text-ink-2" aria-hidden />Sign out</button>
+      ) : (
       <label className="grid gap-1 rounded-xl border border-[#f1d58f] bg-[#fdf4dd] p-4 text-[12.5px] text-[#5c3d00]">
         <span className="font-semibold">Prototype: view as another person</span>
         <select id="more-viewas" className="h-11 rounded-md border border-[#e3c26d] bg-white px-2 text-[14px] text-ink" value={me.id} onChange={(e) => dispatch({ t: 'user', id: e.target.value })}>
           {users.map((u) => <option key={u.id} value={u.id}>{u.name} · {u.role}</option>)}
         </select>
       </label>
+      )}
     </div>
   );
 }

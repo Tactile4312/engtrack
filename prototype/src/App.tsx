@@ -10,6 +10,9 @@ import { Calendar } from './pages/Calendar';
 import { Notifications } from './pages/Notifications';
 import { Reports } from './pages/Reports';
 import { Clients, More } from './pages/Clients';
+import { People } from './pages/People';
+import { LiveGate } from './components/LiveGate';
+import { LIVE } from './lib/cloud';
 
 function Page({ r }: { r: Route }) {
   switch (r.page) {
@@ -23,6 +26,7 @@ function Page({ r }: { r: Route }) {
     case 'notifications': return <Notifications />;
     case 'reports': return <Reports />;
     case 'clients': return <Clients />;
+    case 'people': return <People />;
     case 'more': return <More />;
   }
 }
@@ -80,6 +84,17 @@ const showBar = (() => {
 })();
 
 export default function App() {
+  if (LIVE) {
+    return (
+      <LiveGate
+        render={(snapshot, onState, save) => (
+          <AppProvider snapshot={snapshot} onState={onState} save={save}>
+            <div className="flex h-full flex-col"><Screen /></div>
+          </AppProvider>
+        )}
+      />
+    );
+  }
   return (
     <AppProvider>
       <div className="flex h-full flex-col">

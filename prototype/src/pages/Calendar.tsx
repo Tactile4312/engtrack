@@ -34,7 +34,7 @@ function EvChip({ e, onOpen }: { e: Ev; onOpen: () => void }) {
       title={`${e.kind === 'project' ? 'Project due' : e.kind === 'scope' ? 'Scope due' : e.kind === 'milestone' ? 'Milestone' : 'Planned finish'}: ${e.label} (${e.p.number})`}
       className={cx(
         'flex w-full items-center gap-1 truncate rounded px-1.5 py-[2px] text-left text-[11px] leading-tight',
-        e.done ? 'text-ink-3 line-through' : e.late ? 'bg-crit font-semibold text-white' : e.kind === 'project' ? 'bg-ink text-white' : e.kind === 'milestone' ? 'bg-[#f1effc] text-[#4a3aa7]' : e.kind === 'finish' ? 'border border-dashed border-line-2 text-ink-2' : 'border border-[#86b6ef] bg-brand-50 text-[#184f95]',
+        e.done ? 'text-ink-3 line-through' : e.late ? 'bg-crit font-semibold text-white' : e.kind === 'project' ? 'bg-ink text-white' : e.kind === 'milestone' ? 'bg-[#f1effc] text-[#4a3aa7]' : e.kind === 'finish' ? 'border border-dashed border-line-2 text-ink-2' : 'border border-[#ec8fb5] bg-brand-50 text-[#880e40]',
       )}
     >
       {e.kind === 'milestone' && <Diamond size={9} fill="currentColor" className="shrink-0" />}

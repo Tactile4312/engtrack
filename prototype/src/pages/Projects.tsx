@@ -12,7 +12,7 @@ import { PRIORITIES, SCOPE_TYPES, STATUSES, type Project } from '../types';
 const PAGE = 10;
 
 export function Projects({ initial }: { initial?: Partial<ProjectFilters> }) {
-  const { visibleAll, today, go, me, users, s, isMobile } = useApp();
+  const { visibleAll, today, go, me, peopleIn, s, isMobile } = useApp();
   const [f, setF] = useState<ProjectFilters>({ ...EMPTY_FILTERS, ...initial });
   const [sort, setSort] = useState<{ key: SortKey; dir: 1 | -1 }>({ key: 'due', dir: 1 });
   const [page, setPage] = useState(0);
@@ -23,8 +23,8 @@ export function Projects({ initial }: { initial?: Partial<ProjectFilters> }) {
   const pages = Math.max(1, Math.ceil(rows.length / PAGE));
   const shown = rows.slice(page * PAGE, page * PAGE + PAGE);
   const set = (patch: Partial<ProjectFilters>) => { setF((x) => ({ ...x, ...patch })); setPage(0); };
-  const engineers = users.filter((u) => u.role === 'Engineer');
-  const sales = users.filter((u) => u.role === 'Salesperson');
+  const engineers = peopleIn('Engineer');
+  const sales = peopleIn('Salesperson');
   const active = (Object.keys(f) as (keyof ProjectFilters)[]).filter((k) => f[k] !== EMPTY_FILTERS[k]);
 
   const exportRows = rows.map((p) => [
@@ -130,8 +130,8 @@ export function Projects({ initial }: { initial?: Partial<ProjectFilters> }) {
               const engs = projectEngineers(p);
               const late = p.due < today && p.status !== 'Completed' && p.status !== 'Cancelled';
               return (
-                <tr key={p.id} onClick={() => go({ page: 'project', id: p.id })} className={cx('cursor-pointer border-b border-line hover:bg-[#f6f9fc]', p.archived && 'opacity-60')}>
-                  <td className={cx('whitespace-nowrap px-2.5 py-2.5 font-mono text-[12px] text-ink', late && 'shadow-[inset_3px_0_0_#c63434]')}>{p.number}</td>
+                <tr key={p.id} onClick={() => go({ page: 'project', id: p.id })} className={cx('cursor-pointer border-b border-line hover:bg-[#fdf6f9]', p.archived && 'opacity-60')}>
+                  <td className={cx('whitespace-nowrap px-2.5 py-2.5 font-mono text-[12px] text-ink', late && 'shadow-[inset_3px_0_0_#c2410c]')}>{p.number}</td>
                   <td className="max-w-[250px] px-2.5 py-2 leading-tight"><span className="block truncate font-medium text-ink">{p.name}</span><span className="block truncate text-[12px] text-ink-3">{clientNames[p.clientId]}{p.archived && ' · Archived'}</span></td>
                   <td className="whitespace-nowrap px-2.5 py-2.5"><ScopeTags types={p.scopes.map((x) => x.type)} /></td>
                   <td className="whitespace-nowrap px-2.5 py-2 leading-tight text-ink-2">{engs.length ? shortName(engs[0]) + (engs.length > 1 ? ` +${engs.length - 1}` : '') : <span className="text-ink-3">Unassigned</span>}<br /><span className="text-[12px] text-ink-3">{shortName(p.salesId)}</span></td>

@@ -8,14 +8,14 @@ const uid = () => Math.random().toString(36).slice(2, 9);
 
 /** Add or edit a client. Calls onSaved with the stored record. */
 export function ClientModal({ client, onClose, onSaved }: { client?: Client; onClose: () => void; onSaved?: (c: Client) => void }) {
-  const { s, me, users, dispatch, isMobile } = useApp();
+  const { s, me, peopleIn, dispatch, isMobile } = useApp();
   const isSales = me.role === 'Salesperson';
   const [d, setD] = useState<ClientDraft>(() => client
     ? { name: client.name, company: client.company ?? '', contact: client.contact, email: client.email, phone: client.phone, address: client.address, notes: client.notes, salesId: client.salesId }
     : { name: '', company: '', contact: '', email: '', phone: '', address: '', notes: '', salesId: isSales ? me.id : '' });
   const [errors, setErrors] = useState<Errors>({});
   const [tried, setTried] = useState(false);
-  const sales = users.filter((u) => u.role === 'Salesperson');
+  const sales = peopleIn('Salesperson');
 
   const set = (patch: Partial<ClientDraft>) => {
     const next = { ...d, ...patch };

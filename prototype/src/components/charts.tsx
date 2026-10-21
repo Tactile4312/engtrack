@@ -1,8 +1,8 @@
 import { Bar, BarChart, CartesianGrid, ResponsiveContainer, Tooltip, XAxis, YAxis } from 'recharts';
 import { cx } from './ui';
 
-const BLUE = '#2a78d6';
-const RED = '#c63434';
+const BLUE = '#c72a6b';
+const RED = '#c2410c';
 const GRID = '#e6eaee';
 const MUTED = '#7b858f';
 

@@ -236,7 +236,7 @@ function MiniTimeline({ p }: { p: Project }) {
               <span className="truncate text-ink-2">{sc.type}</span>
               <div className="relative h-4">
                 {sc.start && sc.due && (
-                  <div className={cx('absolute top-0 h-4 overflow-hidden rounded-[4px] border', late ? 'border-crit bg-crit-50' : 'border-[#9ec5f4] bg-brand-50')} style={{ left: x(sc.start), width: w(sc.start, sc.due) }}>
+                  <div className={cx('absolute top-0 h-4 overflow-hidden rounded-[4px] border', late ? 'border-crit bg-crit-50' : 'border-[#f2a8c7] bg-brand-50')} style={{ left: x(sc.start), width: w(sc.start, sc.due) }}>
                     <div className={cx('h-full', sc.progress >= 100 ? 'bg-[#127a12]' : late ? 'bg-crit' : 'bg-brand')} style={{ width: `${sc.progress}%` }} />
                   </div>
                 )}
@@ -268,7 +268,7 @@ function TasksMilestones({ p }: { p: Project }) {
         {p.tasks.length === 0 && <p className="py-3 text-[13px] text-ink-3">No tasks yet.</p>}
         {p.tasks.map((t) => (
           <label key={t.id} className="flex cursor-pointer items-start gap-2.5 border-b border-line py-2 last:border-0">
-            <input type="checkbox" id={`task-${t.id}`} checked={t.done} disabled={!canTick} onChange={() => dispatch({ t: 'task', projectId: p.id, taskId: t.id })} className="mt-0.5 h-4 w-4 accent-[#2a78d6]" />
+            <input type="checkbox" id={`task-${t.id}`} checked={t.done} disabled={!canTick} onChange={() => dispatch({ t: 'task', projectId: p.id, taskId: t.id })} className="mt-0.5 h-4 w-4 accent-[#c72a6b]" />
             <span className="min-w-0 flex-1 text-[13px]">
               <span className={cx('block', t.done ? 'text-ink-3 line-through' : 'text-ink')}>{t.name}</span>
               <span className="block text-[11.5px] text-ink-3">{t.scopeId ? p.scopes.find((s) => s.id === t.scopeId)?.type : 'Project'} · {shortName(t.assigneeId)} · due {fmt(t.due)}</span>
@@ -342,7 +342,7 @@ function ActivityList({ p }: { p: Project }) {
 }
 
 function ScopeUpdate({ p, scope, onClose }: { p: Project; scope: Scope; onClose: () => void }) {
-  const { dispatch, me, users } = useApp();
+  const { dispatch, me, peopleIn } = useApp();
   const pm = me.role === 'Administrator' || me.role === 'Project Manager';
   const allowed = can(me, 'updateScope', p, scope);
   const [status, setStatus] = useState<Status>(scope.status);
@@ -379,7 +379,7 @@ function ScopeUpdate({ p, scope, onClose }: { p: Project; scope: Scope; onClose:
               </select>
             </Field>
             <Field label={`Progress: ${status === 'Completed' ? 100 : progress}%`} htmlFor="scope-progress" hint="Project progress is recalculated from all scopes when you save.">
-              <input id="scope-progress" type="range" min={0} max={100} step={5} value={status === 'Completed' ? 100 : progress} disabled={status === 'Completed'} onChange={(e) => setProgress(Number(e.target.value))} className="h-8 w-full accent-[#2a78d6]" />
+              <input id="scope-progress" type="range" min={0} max={100} step={5} value={status === 'Completed' ? 100 : progress} disabled={status === 'Completed'} onChange={(e) => setProgress(Number(e.target.value))} className="h-8 w-full accent-[#c72a6b]" />
             </Field>
             {pm && (
               <div className="grid gap-3 sm:grid-cols-2">
@@ -389,7 +389,7 @@ function ScopeUpdate({ p, scope, onClose }: { p: Project; scope: Scope; onClose:
                 <Field label="Engineer" htmlFor="scope-eng">
                   <select id="scope-eng" className={inputCls()} value={eng} onChange={(e) => setEng(e.target.value)}>
                     <option value="">Unassigned</option>
-                    {users.filter((u) => u.role === 'Engineer').map((u) => <option key={u.id} value={u.id}>{u.name}</option>)}
+                    {peopleIn('Engineer').map((u) => <option key={u.id} value={u.id}>{u.name}</option>)}
                   </select>
                 </Field>
               </div>

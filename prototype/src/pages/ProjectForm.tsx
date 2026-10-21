@@ -12,7 +12,7 @@ const uid = () => Math.random().toString(36).slice(2, 9);
 const NEW_CLIENT = '__new';
 
 export function ProjectForm({ editId, copyFrom }: { editId?: string; copyFrom?: string }) {
-  const { s, me, users, go, dispatch, today, isMobile, visibleAll } = useApp();
+  const { s, me, peopleIn, go, dispatch, today, isMobile, visibleAll } = useApp();
   const editing = editId ? visibleAll.find((p) => p.id === editId) : undefined;
   const source = editing ?? (copyFrom ? visibleAll.find((p) => p.id === copyFrom) : undefined);
   const isSales = me.role === 'Salesperson';
@@ -103,9 +103,9 @@ export function ProjectForm({ editId, copyFrom }: { editId?: string; copyFrom?: 
   };
 
   const errCount = Object.keys(errors).length;
-  const pms = users.filter((u) => u.role === 'Project Manager' || u.role === 'Administrator');
-  const engineers = users.filter((u) => u.role === 'Engineer');
-  const sales = users.filter((u) => u.role === 'Salesperson');
+  const pms = peopleIn('Project Manager');
+  const engineers = peopleIn('Engineer');
+  const sales = peopleIn('Salesperson');
   const title = editing ? `Edit ${editing.number}` : copyFrom ? 'Duplicate project' : isSales ? 'New project request' : 'Create project';
 
   const sec1 = (

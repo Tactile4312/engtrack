@@ -1,10 +1,13 @@
 import { useState, type ReactNode } from 'react';
 import {
-  Bell, BarChart3, Building2, CalendarDays, FolderKanban, GanttChartSquare, Home, LayoutDashboard, Menu, Monitor, RotateCcw, Search, Smartphone,
+  AlertTriangle, Bell, BarChart3, Building2, CalendarDays, Check, FolderKanban, GanttChartSquare, Home, LayoutDashboard, LogOut, Menu, Monitor, RotateCcw, Search, Smartphone, Users,
 } from 'lucide-react';
 import { useApp, type Route } from '../store/AppStore';
 import { useInbox } from '../lib/hooks';
 import { Avatar, cx } from './ui';
+import { LIVE } from '../lib/cloud';
+import { signOut } from './LiveGate';
+import { PersonModal } from '../pages/People';
 
 const NAV: { page: Route['page']; label: string; Icon: typeof Home }[] = [
   { page: 'dashboard', label: 'Dashboard', Icon: LayoutDashboard },
@@ -14,7 +17,17 @@ const NAV: { page: Route['page']; label: string; Icon: typeof Home }[] = [
   { page: 'notifications', label: 'Notifications', Icon: Bell },
   { page: 'reports', label: 'Reports', Icon: BarChart3 },
   { page: 'clients', label: 'Clients', Icon: Building2 },
+  ...(LIVE ? [{ page: 'people' as const, label: 'People', Icon: Users }] : []),
 ];
+
+/** Live mode: shows whether the latest change has been saved. */
+export function SaveBadge() {
+  const { save } = useApp();
+  if (!save) return null;
+  if (save === 'error') return <span role="status" className="flex items-center gap-1 text-[12px] font-medium text-crit"><AlertTriangle size={14} aria-hidden />Not saved, retrying…</span>;
+  if (save === 'saving') return <span role="status" className="text-[12px] text-ink-3">Saving…</span>;
+  return <span role="status" className="flex items-center gap-1 text-[12px] text-ink-3"><Check size={14} aria-hidden />Saved</span>;
+}
 
 const sectionOf = (r: Route): Route['page'] => (r.page === 'project' || r.page === 'new' || r.page === 'edit' ? 'projects' : r.page);
 
@@ -22,7 +35,7 @@ export function Logo({ dark }: { dark?: boolean }) {
   return (
     <span className="flex items-center gap-2.5">
       <svg width="30" height="30" viewBox="0 0 30 30" aria-hidden>
-        <rect width="30" height="30" rx="7" fill="#2a78d6" />
+        <rect width="30" height="30" rx="7" fill="#c72a6b" />
         <path d="M8 21h14M10 21V11l5-3 5 3v10M13 21v-5h4v5" fill="none" stroke="#fff" strokeWidth="1.8" strokeLinejoin="round" strokeLinecap="round" />
       </svg>
       <span className={cx('text-[16px] font-semibold tracking-tight', dark ? 'text-white' : 'text-ink')}>EngTrack</span>
@@ -87,8 +100,31 @@ function GlobalSearch({ big }: { big?: boolean }) {
   );
 }
 
+/** Live mode: the signed-in person can click their name to change it. */
+function Profile() {
+  const { me, s } = useApp();
+  const [open, setOpen] = useState(false);
+  const inner = (
+    <>
+      <Avatar name={me.name} size={34} />
+      <div className="text-left leading-tight">
+        <div className="text-[13px] font-semibold text-ink">{me.name}</div>
+        <div className="text-[11.5px] text-ink-3">{LIVE ? 'Edit my name' : me.role}</div>
+      </div>
+    </>
+  );
+  if (!LIVE) return <div className="flex items-center gap-2.5">{inner}</div>;
+  const self = s.people.find((u) => u.id === me.id);
+  return (
+    <>
+      <button id="profile-edit" onClick={() => setOpen(true)} className="flex items-center gap-2.5 rounded-md px-1.5 py-1 hover:bg-paper" title="Edit my name">{inner}</button>
+      {open && <PersonModal person={self} onClose={() => setOpen(false)} />}
+    </>
+  );
+}
+
 export function DesktopShell({ children }: { children: ReactNode }) {
-  const { s, go, me } = useApp();
+  const { s, go } = useApp();
   const { unread } = useInbox();
   const cur = sectionOf(s.route);
   return (
@@ -110,23 +146,22 @@ export function DesktopShell({ children }: { children: ReactNode }) {
           ))}
         </nav>
         <div className="flex-1" />
-        <p className="px-3 text-[11px] leading-snug text-rail-3">Prototype v0.1<br />Sample records only</p>
+        {LIVE ? (
+          <button onClick={() => void signOut()} className="flex items-center gap-3 rounded-md px-3 py-2 text-left text-rail-3 hover:bg-rail-2/60 hover:text-white"><LogOut size={17} aria-hidden />Sign out</button>
+        ) : (
+          <p className="px-3 text-[11px] leading-snug text-rail-3">Prototype v0.2<br />Sample records only</p>
+        )}
       </aside>
       <div className="flex min-w-0 flex-1 flex-col">
         <header className="flex h-[60px] shrink-0 items-center gap-4 border-b border-line bg-white px-6">
           <GlobalSearch />
           <span className="flex-1" />
+          <SaveBadge />
           <button onClick={() => go({ page: 'notifications' })} className="relative grid h-9 w-9 place-items-center rounded-full border border-line-2 text-ink-2 hover:bg-paper" aria-label={`Notifications, ${unread} unread`}>
             <Bell size={17} />
             {unread > 0 && <span className="absolute -right-1 -top-1 rounded-full bg-crit px-1.5 text-[10.5px] font-semibold leading-4 text-white">{unread}</span>}
           </button>
-          <div className="flex items-center gap-2.5">
-            <Avatar name={me.name} size={34} />
-            <div className="leading-tight">
-              <div className="text-[13px] font-semibold text-ink">{me.name}</div>
-              <div className="text-[11.5px] text-ink-3">{me.role}</div>
-            </div>
-          </div>
+          <Profile />
         </header>
         <main className="min-h-0 flex-1 overflow-auto bg-paper" id="main">{children}</main>
       </div>
@@ -145,7 +180,7 @@ export function MobileShell({ children, title, back }: { children: ReactNode; ti
     { page: 'notifications', label: 'Alerts', Icon: Bell, badge: unread },
     { page: 'more', label: 'More', Icon: Menu },
   ];
-  const moreActive = ['calendar', 'reports', 'clients', 'more'].includes(cur);
+  const moreActive = ['calendar', 'reports', 'clients', 'people', 'more'].includes(cur);
   return (
     <div className="flex min-h-0 flex-1 flex-col bg-paper">
       <header className="flex h-14 shrink-0 items-center gap-3 border-b border-line bg-white px-4">
@@ -158,6 +193,7 @@ export function MobileShell({ children, title, back }: { children: ReactNode; ti
         )}
         {title && <h1 className="min-w-0 truncate text-[16px] font-semibold text-ink">{title}</h1>}
         <span className="flex-1" />
+        <SaveBadge />
         {!back && (
           <>
             <button onClick={() => go({ page: 'notifications' })} className="relative grid h-10 w-10 place-items-center rounded-full text-ink-2" aria-label={`Notifications, ${unread} unread`}>

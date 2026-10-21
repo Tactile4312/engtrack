@@ -35,7 +35,7 @@ export function Notifications() {
       const Icon = ICON[n.step];
       const scope = n.scopeId ? n.project.scopes.find((s) => s.id === n.scopeId) : undefined;
       return (
-        <button key={n.key} onClick={() => open(n)} className={cx('flex w-full items-start gap-3 border-b border-line px-4 py-3 text-left last:border-0 hover:bg-[#f6f9fc]', !n.read && 'bg-[#f6f9fc]')}>
+        <button key={n.key} onClick={() => open(n)} className={cx('flex w-full items-start gap-3 border-b border-line px-4 py-3 text-left last:border-0 hover:bg-[#fdf6f9]', !n.read && 'bg-[#fdf6f9]')}>
           <span className={cx('mt-1.5 h-2.5 w-2.5 shrink-0 rounded-full', n.read ? 'border-[1.5px] border-line-2' : 'bg-brand')} aria-label={n.read ? 'Read' : 'Unread'} />
           <span className={cx('grid h-9 w-9 shrink-0 place-items-center rounded-full', n.step === 'overdue' ? 'bg-crit text-white' : n.step === 'today' ? 'bg-crit-50 text-crit-700' : 'bg-brand-50 text-brand-700')}><Icon size={17} aria-hidden /></span>
           <span className="min-w-0 flex-1">

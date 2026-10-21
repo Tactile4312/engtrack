@@ -10,9 +10,9 @@ const cx = (...c: (string | false | null | undefined)[]) => c.filter(Boolean).jo
 export { cx };
 
 const STATUS_STYLE: Record<Status, { cls: string; Icon: typeof CircleDot }> = {
-  'New Request': { cls: 'bg-[#ecf3fc] text-[#184f95] ring-[#b7d3f6]', Icon: CircleDot },
+  'New Request': { cls: 'bg-[#fdecf3] text-[#880e40] ring-[#f6c0d6]', Icon: CircleDot },
   'For Review': { cls: 'bg-[#f1effc] text-[#4a3aa7] ring-[#d6d0f5]', Icon: Eye },
-  'In Progress': { cls: 'bg-[#2a78d6] text-white ring-[#2a78d6]', Icon: PlayCircle },
+  'In Progress': { cls: 'bg-[#c72a6b] text-white ring-[#c72a6b]', Icon: PlayCircle },
   'On Hold': { cls: 'bg-[#eef0f2] text-[#4a5560] ring-[#c5ccd3]', Icon: PauseCircle },
   'Waiting for Client': { cls: 'bg-[#fdf4dd] text-[#7a5200] ring-[#f1d58f]', Icon: Clock },
   'Waiting for Engineering': { cls: 'bg-[#fdf4dd] text-[#7a5200] ring-[#f1d58f]', Icon: Clock },
@@ -35,7 +35,7 @@ const PRI: Record<Priority, string> = {
   Low: 'bg-[#dde2e7]',
   Normal: 'bg-[#8fa3b6]',
   High: 'bg-[#b77a00]',
-  Critical: 'bg-[#c63434]',
+  Critical: 'bg-[#c2410c]',
 };
 
 export function PriorityTag({ p }: { p: Priority }) {
@@ -52,7 +52,7 @@ export function Progress({ value, size = 'sm', label = true }: { value: number; 
   return (
     <div className="flex min-w-0 items-center gap-2" role="img" aria-label={`${value}% complete`}>
       <div className={cx('relative w-full min-w-[48px] overflow-hidden rounded-full bg-[#e3e8ed]', h)}>
-        <div className={cx('absolute inset-y-0 left-0 rounded-full', value >= 100 ? 'bg-[#127a12]' : 'bg-[#2a78d6]')} style={{ width: `${value}%` }} />
+        <div className={cx('absolute inset-y-0 left-0 rounded-full', value >= 100 ? 'bg-[#127a12]' : 'bg-[#c72a6b]')} style={{ width: `${value}%` }} />
       </div>
       {label && <span className={cx('shrink-0 tabular-nums text-ink-2', size === 'lg' ? 'text-base font-semibold text-ink' : 'text-[12px]')}>{value}%</span>}
     </div>
@@ -71,7 +71,7 @@ export function DueFlag({ due, status, today, compact }: { due: ISODate | null; 
     );
   }
   if (st === 'today')
-    return <span className="inline-flex items-center gap-1 whitespace-nowrap rounded bg-crit-50 px-1.5 py-[1px] text-[11px] font-semibold text-crit-700 ring-1 ring-inset ring-[#f0b9b9]"><Clock size={11} strokeWidth={2.5} aria-hidden />Due today</span>;
+    return <span className="inline-flex items-center gap-1 whitespace-nowrap rounded bg-crit-50 px-1.5 py-[1px] text-[11px] font-semibold text-crit-700 ring-1 ring-inset ring-[#f6c4a8]"><Clock size={11} strokeWidth={2.5} aria-hidden />Due today</span>;
   if (st === 'soon' && !compact) {
     const n = diffDays(today, due!);
     return <span className="whitespace-nowrap text-[11px] font-medium text-warn">in {n} d</span>;
@@ -179,7 +179,7 @@ export function Empty({ title, children }: { title: string; children?: ReactNode
 export function Avatar({ name, size = 28 }: { name: string; size?: number }) {
   const initials = name.split(' ').map((w) => w[0]).slice(0, 2).join('');
   return (
-    <span className="inline-grid shrink-0 place-items-center rounded-full bg-[#dbe6f2] font-semibold text-[#184f95]" style={{ width: size, height: size, fontSize: size * 0.38 }} aria-hidden>
+    <span className="inline-grid shrink-0 place-items-center rounded-full bg-[#f3dce6] font-semibold text-[#880e40]" style={{ width: size, height: size, fontSize: size * 0.38 }} aria-hidden>
       {initials}
     </span>
   );

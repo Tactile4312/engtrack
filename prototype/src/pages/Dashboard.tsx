@@ -1,6 +1,7 @@
 import { AlertTriangle, ChevronRight, Plus } from 'lucide-react';
 import { shortName, useApp, userName, type ProjectFilters } from '../store/AppStore';
 import { PageHead } from '../components/Shell';
+import { RemoveSampleData } from './People';
 import { Avatar, Button, Card, DueFlag, cx } from '../components/ui';
 import { BarList, MonthlyColumns, Ratio, SplitBars } from '../components/charts';
 import { byScope, byStatus, deadlines, monthly, recentActivity, summary, workload, type Deadline } from '../lib/metrics';
@@ -41,12 +42,12 @@ function Kpi({ label, value, sub, alert, onClick }: { label: string; value: numb
 }
 
 export function Dashboard() {
-  const { visible, today, go, me, users, isMobile } = useApp();
+  const { visible, today, go, me, peopleIn, isMobile } = useApp();
   const sm = summary(visible, today);
   const dl = deadlines(visible);
   const upcoming = dl.filter((d) => d.due >= today && diffDays(today, d.due) <= 14).slice(0, isMobile ? 5 : 6);
   const overdue = dl.filter((d) => d.due < today).sort((a, b) => a.due.localeCompare(b.due));
-  const engineers = users.filter((u) => u.role === 'Engineer');
+  const engineers = peopleIn('Engineer');
   const toList = (filters: Partial<ProjectFilters>) => go({ page: 'projects', filters });
   const openD = (d: Deadline) => go({ page: 'project', id: d.project.id, scopeId: d.scope?.id });
   const scopeNote = (n: number) => (n ? `+ ${n} scope${n > 1 ? 's' : ''}` : 'no scopes');
@@ -90,6 +91,7 @@ export function Dashboard() {
           <h1 className="text-[20px] font-semibold text-ink">Hello, {me.name.split(' ')[0]}</h1>
           <p className="text-[12.5px] text-ink-3">{fmtLong(today)}</p>
         </div>
+        <RemoveSampleData compact />
         {(sm.overdue > 0 || sm.overdueScopes > 0) && (
           <button onClick={() => toList({ due: 'overdue' })} className="flex items-center gap-3 rounded-lg border-2 border-crit bg-crit-50 px-3 py-3 text-left">
             <AlertTriangle className="shrink-0 text-crit" size={22} aria-hidden />
@@ -125,6 +127,7 @@ export function Dashboard() {
         sub={<>{fmtLong(today)}{restricted && <> · showing the {visible.length} projects {me.role === 'Engineer' ? 'assigned to you' : 'for your clients'}</>}</>}
         actions={can(me, 'create') && <Button kind="primary" onClick={() => go({ page: 'new' })}><Plus size={16} />New project</Button>}
       />
+      <RemoveSampleData compact />
       <div className="grid grid-cols-4 gap-3 xl:grid-cols-8">{kpis}</div>
       <div className="grid grid-cols-2 gap-4 xl:grid-cols-4">
         <Card title="Projects by status"><BarList rows={byStatus(visible)} onPick={(s) => toList({ status: s as ProjectFilters['status'], showCompleted: true })} /></Card>

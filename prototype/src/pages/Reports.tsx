@@ -29,7 +29,7 @@ type RId = (typeof REPORTS)[number][0];
 interface Table { header: string[]; rows: Cell[][]; ids?: string[]; status?: (Status | null)[] }
 
 export function Reports() {
-  const { visible, today, users, s, go, isMobile } = useApp();
+  const { visible, today, peopleIn, s, go, isMobile } = useApp();
   const [rid, setRid] = useState<RId>('stats');
   const [from, setFrom] = useState(`${today.slice(0, 4)}-01-01`);
   const [to, setTo] = useState(addDays(today, 60));
@@ -37,7 +37,7 @@ export function Reports() {
   const [eng, setEng] = useState('');
   const [scope, setScope] = useState('');
   const [exporting, setExporting] = useState(false);
-  const engineers = users.filter((u) => u.role === 'Engineer');
+  const engineers = peopleIn('Engineer');
   const cname = (id: string) => s.clients.find((c) => c.id === id)?.name ?? '';
 
   // Filters apply to every report: date range (on the due date, or completion date for completed work), status, engineer, scope.
@@ -136,7 +136,7 @@ export function Reports() {
         <thead><tr>{table.header.map((h) => <th key={h} className="whitespace-nowrap border-b-2 border-line-2 px-3 py-2 text-left text-[11.5px] font-semibold uppercase tracking-wide text-ink-2">{h}</th>)}</tr></thead>
         <tbody>
           {table.rows.map((r, i) => (
-            <tr key={i} onClick={table.ids ? () => go({ page: 'project', id: table.ids![i] }) : undefined} className={cx('border-b border-line', table.ids && 'cursor-pointer hover:bg-[#f6f9fc]')}>
+            <tr key={i} onClick={table.ids ? () => go({ page: 'project', id: table.ids![i] }) : undefined} className={cx('border-b border-line', table.ids && 'cursor-pointer hover:bg-[#fdf6f9]')}>
               {r.map((c, j) => {
                 const h = table.header[j];
                 const st = table.status?.[i];
@@ -170,7 +170,7 @@ export function Reports() {
           <div className="grid grid-cols-[230px_minmax(0,1fr)] gap-4">
             <nav className="grid content-start gap-0.5 rounded-lg border border-line bg-white p-2" aria-label="Reports">
               {REPORTS.map(([id, l]) => (
-                <button key={id} onClick={() => setRid(id)} aria-current={rid === id ? 'page' : undefined} className={cx('rounded-md px-3 py-2 text-left text-[13px]', rid === id ? 'bg-brand-50 font-semibold text-[#184f95]' : 'text-ink-2 hover:bg-paper')}>{l}</button>
+                <button key={id} onClick={() => setRid(id)} aria-current={rid === id ? 'page' : undefined} className={cx('rounded-md px-3 py-2 text-left text-[13px]', rid === id ? 'bg-brand-50 font-semibold text-[#880e40]' : 'text-ink-2 hover:bg-paper')}>{l}</button>
               ))}
             </nav>
             <div className="grid min-w-0 content-start gap-4">

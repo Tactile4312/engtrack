@@ -1,8 +1,9 @@
 import { createContext, useContext, useEffect, useMemo, useReducer, useState, type ReactNode } from 'react';
-import type { Client, Note, Project, Scope, Status, User } from '../types';
+import type { Client, Note, Notice, Project, Role, Scope, Status, User } from '../types';
 import { buildSeed, USERS } from '../mock-data/seed';
 import { todayISO } from '../lib/dates';
 import { buildSchedule, canSee, isClosed } from '../lib/rules';
+import { LIVE, ME_ID, type Settings, type Snapshot } from '../lib/cloud';
 
 export interface ProjectFilters {
   q: string;
@@ -32,11 +33,14 @@ export type Route =
   | { page: 'notifications' }
   | { page: 'reports' }
   | { page: 'clients' }
+  | { page: 'people' }
   | { page: 'more' };
 
-interface State {
+export interface State {
   projects: Project[];
   clients: Client[];
+  people: User[];
+  demo?: Settings['demo'];
   userId: string;
   route: Route;
   history: Route[];
@@ -50,6 +54,10 @@ type Msg =
   | { t: 'back' }
   | { t: 'save'; project: Project; isNew: boolean }
   | { t: 'client'; client: Client; isNew: boolean }
+  | { t: 'person'; person: User; isNew: boolean }
+  | { t: 'unperson'; id: string }
+  | { t: 'removeDemo' }
+  | { t: 'addDemo' }
   | { t: 'scope'; projectId: string; scopeId: string; patch: Partial<Scope>; note?: string }
   | { t: 'status'; projectId: string; status: Status }
   | { t: 'archive'; projectId: string; archived: boolean }
@@ -64,9 +72,13 @@ type Msg =
 const uid = () => Math.random().toString(36).slice(2, 9);
 const now = () => new Date().toISOString();
 
-function initial(route: Route = { page: 'dashboard' }, userId = 'u-pm1'): State {
+function initial(route: Route = { page: 'dashboard' }, userId = 'u-pm1', snap?: Snapshot): State {
+  if (snap) {
+    const { projects, clients, people, settings } = snap;
+    return { projects, clients, people, demo: settings.demo, userId: ME_ID, route, history: [], read: settings.read, toast: null };
+  }
   const { projects, clients } = buildSeed();
-  return { projects, clients, userId, route, history: [], read: {}, toast: null };
+  return { projects, clients, people: USERS, userId, route, history: [], read: {}, toast: null };
 }
 
 function touch(p: Project, userId: string, action: string, from?: string, to?: string): Project {
@@ -97,6 +109,42 @@ function reducer(s: State, m: Msg): State {
     case 'client': {
       const clients = m.isNew ? [...s.clients, m.client] : s.clients.map((c) => (c.id === m.client.id ? m.client : c));
       return { ...s, clients, toast: m.isNew ? `Client ${m.client.name} added` : `Client ${m.client.name} saved` };
+    }
+    case 'person': {
+      const people = m.isNew ? [...s.people, m.person] : s.people.map((u) => (u.id === m.person.id ? m.person : u));
+      return { ...s, people, toast: m.isNew ? `${m.person.name} added` : `${m.person.name} saved` };
+    }
+    case 'unperson':
+      return { ...s, people: s.people.filter((u) => u.id !== m.id), toast: 'Person removed' };
+    case 'addDemo': {
+      // Adds the sample records back, skipping any id already in use.
+      const seed = buildSeed();
+      const has = (list: { id: string }[], id: string) => list.some((x) => x.id === id);
+      const projects = seed.projects.filter((p) => !has(s.projects, p.id));
+      const clients = seed.clients.filter((c) => !has(s.clients, c.id));
+      const people = USERS.filter((u) => !has(s.people, u.id));
+      return {
+        ...s,
+        projects: [...s.projects, ...projects],
+        clients: [...s.clients, ...clients],
+        people: [...s.people, ...people],
+        demo: { projects: projects.map((p) => p.id), clients: clients.map((c) => c.id), people: people.map((u) => u.id) },
+        toast: `${projects.length} sample projects added`,
+      };
+    }
+    case 'removeDemo': {
+      if (!s.demo) return s;
+      const d = s.demo;
+      const people = s.people.filter((u) => !d.people.includes(u.id));
+      const kept = new Set(people.map((u) => u.id));
+      const clients = s.clients.filter((c) => !d.clients.includes(c.id)).map((c) => (kept.has(c.salesId) ? c : { ...c, salesId: '' }));
+      const projects = s.projects.filter((p) => !d.projects.includes(p.id)).map((p) => ({
+        ...p,
+        salesId: kept.has(p.salesId) ? p.salesId : '',
+        pmId: kept.has(p.pmId) ? p.pmId : '',
+        scopes: p.scopes.map((x) => (x.engineerId && !kept.has(x.engineerId) ? { ...x, engineerId: null } : x)),
+      }));
+      return { ...s, projects, clients, people, demo: undefined, route: { page: 'dashboard' }, history: [], toast: 'Sample data removed' };
     }
     case 'scope':
       return {
@@ -179,9 +227,14 @@ function reducer(s: State, m: Msg): State {
   }
 }
 
+// Current people list, for the name helpers below (kept in step with the store).
+let PEOPLE: User[] = USERS;
+
 function name(id: string | null) {
-  return USERS.find((u) => u.id === id)?.name ?? 'Unassigned';
+  return PEOPLE.find((u) => u.id === id)?.name ?? 'Unassigned';
 }
+
+export type SaveState = 'saved' | 'saving' | 'error';
 
 export type Device = 'auto' | 'desktop' | 'mobile';
 
@@ -191,6 +244,8 @@ interface Ctx {
   go: (r: Route) => void;
   me: User;
   users: User[];
+  /** People to offer for a role in pickers. In live mode the signed-in user is offered for every role. */
+  peopleIn: (role: Role) => User[];
   today: string;
   /** Projects the current user is allowed to see (Q7), excluding archived. */
   visible: Project[];
@@ -200,6 +255,8 @@ interface Ctx {
   device: Device;
   setDevice: (d: Device) => void;
   isMobile: boolean;
+  /** Live mode only: whether the latest change has reached the database. */
+  save?: SaveState;
 }
 
 const C = createContext<Ctx | null>(null);
@@ -220,9 +277,24 @@ function readParams(): { route?: Route; device?: Device; user?: string } {
   }
 }
 
-export function AppProvider({ children }: { children: ReactNode }) {
+/** Live mode has one person: every reminder goes to them, once per item and step. */
+function forOneUser(list: Notice[]): Notice[] {
+  const out = new Map<string, Notice>();
+  for (const n of list) {
+    const key = `${n.itemType}:${n.scopeId ?? n.projectId}:${n.step}:${n.trigger}:${ME_ID}`;
+    out.set(key, { ...n, key, recipientId: ME_ID });
+  }
+  return [...out.values()];
+}
+
+export function AppProvider({ children, snapshot, onState, save }: { children: ReactNode; snapshot?: Snapshot; onState?: (s: State) => void; save?: SaveState }) {
   const params = useMemo(readParams, []);
-  const [s, dispatch] = useReducer(reducer, undefined, () => initial(params.route, params.user));
+  const [s, dispatch] = useReducer(reducer, undefined, () => initial(params.route, params.user, snapshot));
+  PEOPLE = s.people;
+
+  useEffect(() => {
+    onState?.(s);
+  }, [s, onState]);
   const [device, setDevice] = useState<Device>(params.device ?? 'auto');
   const [narrow, setNarrow] = useState(() => window.innerWidth < 820);
 
@@ -239,18 +311,25 @@ export function AppProvider({ children }: { children: ReactNode }) {
   }, [s.toast]);
 
   const value = useMemo<Ctx>(() => {
-    const me = USERS.find((u) => u.id === s.userId)!;
+    const found = s.people.find((u) => u.id === s.userId) ?? s.people[0];
+    // Live mode: the one user can do everything, whatever their job title.
+    const me: User = LIVE ? { ...found, role: 'Administrator' } : found;
     const visibleAll = s.projects.filter((p) => canSee(me, p, s.clients));
+    const peopleIn = (role: Role) => {
+      const list = s.people.filter((u) => u.role === role || (role === 'Project Manager' && u.role === 'Administrator'));
+      return LIVE && !list.some((u) => u.id === me.id) ? [found, ...list] : list;
+    };
     return {
-      s, dispatch, me, users: USERS, today: todayISO(),
+      s, dispatch, me, users: s.people, peopleIn, today: todayISO(),
       go: (route) => dispatch({ t: 'go', route }),
       visibleAll,
       visible: visibleAll.filter((p) => !p.archived),
-      schedule: buildSchedule(s.projects),
+      schedule: LIVE ? forOneUser(buildSchedule(s.projects)) : buildSchedule(s.projects),
       device, setDevice,
       isMobile: device === 'mobile' || (device === 'auto' && narrow),
+      save,
     };
-  }, [s, device, narrow]);
+  }, [s, device, narrow, save]);
 
   return <C.Provider value={value}>{children}</C.Provider>;
 }
@@ -262,11 +341,11 @@ export function useApp() {
 }
 
 export function userName(id: string | null | undefined) {
-  return USERS.find((u) => u.id === id)?.name ?? 'Unassigned';
+  return PEOPLE.find((u) => u.id === id)?.name ?? 'Unassigned';
 }
 
 export function shortName(id: string | null | undefined) {
-  const n = USERS.find((u) => u.id === id)?.name;
+  const n = PEOPLE.find((u) => u.id === id)?.name;
   if (!n) return 'Unassigned';
   const [f, ...rest] = n.split(' ');
   return `${f[0]}. ${rest.join(' ')}`;
