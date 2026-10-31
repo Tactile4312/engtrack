@@ -19,7 +19,7 @@ export function ExportModal({ title, filename, header, rows, onClose }: { title:
     <Modal title={title} onClose={onClose} wide footer={<Button onClick={onClose}>Close</Button>}>
       <p className="text-[13px] text-ink-2">
         Exports the <b>{rows.length}</b> rows that match your current filters, limited to the projects you are allowed to see.
-        CRM numbers and dates are written as text so Excel keeps their format.
+        Excel may reformat dates when it opens the file.
       </p>
       <div className="mt-4 grid gap-2 sm:grid-cols-3">
         <Button kind="primary" onClick={() => save(`${filename}.csv`)}><Download size={16} />CSV</Button>
@@ -29,7 +29,7 @@ export function ExportModal({ title, filename, header, rows, onClose }: { title:
       {msg && <p className="mt-3 rounded-md bg-paper px-3 py-2 text-[12.5px] text-ink" role="status">{msg}</p>}
       <p className="mt-4 text-[12px] font-medium text-ink-2">Preview</p>
       <textarea readOnly id="export-preview" className="mt-1 h-40 w-full rounded-md border border-line bg-paper p-2 font-mono text-[11px] text-ink" value={csv.replace(/^﻿/, '')} />
-      <p className="mt-2 text-[11.5px] text-ink-3">Prototype: PDF export and printable summaries come with the full build.</p>
+      <p className="mt-2 text-[11.5px] text-ink-3">PDF export and printable summaries are not available yet.</p>
     </Modal>
   );
 }

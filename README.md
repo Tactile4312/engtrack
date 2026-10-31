@@ -51,7 +51,7 @@ Needs Node.js 18+ (tested with Node 24).
 cd prototype
 npm install
 npm run dev        # http://localhost:5173 with live reload
-npm test           # 26 rule tests (progress, validation, reminders, visibility, clients)
+npm test           # rules, backup file checks and CSV export
 npm run build      # live app: one self-contained file, dist/index.html (needs prototype/.env.local)
 npm run build:demo # demo: dist-demo/index.html (no login, no database)
 bash capture.sh    # after a build: refresh the PNG mockups (uses Chrome)
@@ -70,6 +70,16 @@ After `npm run build`, copy `prototype/dist/index.html` to `design/client-share/
 ## Publish (GitHub Pages)
 
 https://tactile4312.github.io/engtrack/ serves `docs/` from the `main` branch. To update: `npm run build && npm run build:demo` in `prototype/`, copy `prototype/dist/index.html` to `docs/index.html` and `prototype/dist-demo/index.html` to `docs/demo/index.html`, commit and push. GitHub takes a minute or two to publish.
+
+## Backups and restoring
+
+The live app stores real data on a free Supabase project. This setup has no automatic backups you can rely on, and the free tier pauses a project after 7 days with no activity (as of 2026-10-21; check supabase.com/pricing).
+
+- **Back up:** sign in, open **People**, choose **Download backup**, and keep the `engtrack-backup-<date>.json` file outside the app, at least weekly. The page shows the last backup date and warns after 7 days.
+- **Restore:** **People** > **Restore from file**. The file is checked first and the app asks for confirmation. Restoring replaces all current data, and anything added since the backup is lost. The same sign-in account must be used.
+- **If the project is paused:** sign in to the Supabase dashboard and restore the project there, then check that the app loads.
+
+The file contains client and project data, so don't commit it to this public repo.
 
 ## Chart and UI notes
 

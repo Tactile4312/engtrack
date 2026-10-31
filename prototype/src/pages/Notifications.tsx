@@ -6,6 +6,7 @@ import { Button, Card, Chip, Empty, cx } from '../components/ui';
 import { useInbox, type InboxItem } from '../lib/hooks';
 import { fmt } from '../lib/dates';
 import { RECIPIENT_RULES, STEP_LABEL } from '../lib/rules';
+import { LIVE } from '../lib/cloud';
 import type { ReminderStep } from '../types';
 
 type F = 'unread' | 'all' | 'overdue' | 'today';
@@ -44,7 +45,7 @@ export function Notifications() {
               <span className={cx('rounded px-1.5 text-[10.5px] font-semibold uppercase tracking-wide', scope ? 'border border-line-2 text-ink-2' : 'bg-ink text-white')}>{scope ? 'Scope' : 'Project'}</span>
             </span>
             <span className={cx('block text-[13.5px]', n.read ? 'text-ink-2' : 'font-medium text-ink')}>{scope ? `${scope.type} · ${n.project.name}` : n.project.name}</span>
-            <span className="block text-[12px] text-ink-3">{n.project.number} · due {fmt(n.due, true)} · sent {fmt(n.trigger)} to you as {roleOn(n, me.id)}</span>
+            <span className="block text-[12px] text-ink-3">{n.project.number} · due {fmt(n.due, true)} · {LIVE ? `reminder from ${fmt(n.trigger)}` : `sent ${fmt(n.trigger)} to you as ${roleOn(n, me.id)}`}</span>
           </span>
           <ChevronRight size={16} className="mt-2 shrink-0 text-ink-3" aria-hidden />
         </button>
@@ -100,10 +101,10 @@ export function Notifications() {
             </ul>
             <div className="mt-3 grid gap-1 rounded-md bg-paper p-2.5 text-[12px]">
               <p><b className="text-ink">In-app</b> <span className="text-good">· shown here</span></p>
-              <p><b className="text-ink">Browser alerts</b> <span className="text-ink-3">· full build, asks each user for permission</span></p>
-              <p><b className="text-ink">Email</b> <span className="text-ink-3">· full build, needs a company mail account</span></p>
+              <p><b className="text-ink">Browser alerts</b> <span className="text-ink-3">· {LIVE ? 'not available yet' : 'full build, asks each user for permission'}</span></p>
+              <p><b className="text-ink">Email</b> <span className="text-ink-3">· {LIVE ? 'not available yet' : 'full build, needs a company mail account'}</span></p>
             </div>
-            <p className="mt-2 text-[11.5px] text-ink-3">Prototype: reminders are worked out from the demo dates. In the full build a server job sends them daily, even when nobody is logged in. {shortName(me.id)} sees only their own.</p>
+            <p className="mt-2 text-[11.5px] text-ink-3">{LIVE ? 'Reminders only show here while you have EngTrack open. Nothing is sent to your email or phone, so check this page regularly.' : `Prototype: reminders are worked out from the demo dates. In the full build a server job sends them daily, even when nobody is logged in. ${shortName(me.id)} sees only their own.`}</p>
           </Card>
         </div>
       </div>

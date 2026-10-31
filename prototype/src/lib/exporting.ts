@@ -1,10 +1,14 @@
 export type Cell = string | number | null | undefined;
 
-/** CSV with a byte-order mark so Excel opens it as UTF-8 and keeps CRM numbers and dates as text. */
+/**
+ * CSV with a byte-order mark so Excel opens it as UTF-8.
+ * Text starting with a formula character gets a leading apostrophe, so a typed name can't run as a spreadsheet formula.
+ */
 export function toCSV(header: string[], rows: Cell[][]): string {
   const q = (v: Cell) => {
-    const s = v == null ? '' : String(v);
-    return /[",\n]/.test(s) ? `"${s.replace(/"/g, '""')}"` : s;
+    let s = v == null ? '' : String(v);
+    if (typeof v === 'string' && /^[=+\-@\t\r]/.test(s)) s = `'${s}`;
+    return /[",\r\n]/.test(s) ? `"${s.replace(/"/g, '""')}"` : s;
   };
   return '﻿' + [header, ...rows].map((r) => r.map(q).join(',')).join('\r\n');
 }

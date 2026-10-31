@@ -93,7 +93,7 @@ function Loaded({ session, render }: { session: Session; render: (snap: Snapshot
     running.current = true;
     const s = pending.current;
     pending.current = null;
-    const settings: Settings = { read: s.read, demo: s.demo };
+    const settings: Settings = { read: s.read, demo: s.demo, lastBackup: s.lastBackup };
     try {
       const base = saved.current;
       await saveDiff('people', base.people, s.people);
@@ -108,6 +108,7 @@ function Loaded({ session, render }: { session: Session; render: (snap: Snapshot
       pending.current = pending.current ?? s;
       setSave('error');
       timer.current = setTimeout(() => void flush(), 5000);
+      return;
     } finally {
       running.current = false;
     }
@@ -117,7 +118,7 @@ function Loaded({ session, render }: { session: Session; render: (snap: Snapshot
   const onState = useCallback((s: State) => {
     const base = saved.current;
     if (!base) return;
-    const same = base.projects === s.projects && base.clients === s.clients && base.people === s.people && base.settings === JSON.stringify({ read: s.read, demo: s.demo });
+    const same = base.projects === s.projects && base.clients === s.clients && base.people === s.people && base.settings === JSON.stringify({ read: s.read, demo: s.demo, lastBackup: s.lastBackup });
     if (same) return;
     pending.current = s;
     setSave('saving');

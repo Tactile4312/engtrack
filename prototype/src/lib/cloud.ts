@@ -17,6 +17,8 @@ export interface Settings {
   read: Record<string, true>;
   /** Ids of the sample records added on first sign-in, so they can be removed in one step. */
   demo?: { projects: string[]; clients: string[]; people: string[] };
+  /** When the user last downloaded a backup file. */
+  lastBackup?: string;
 }
 
 export interface Snapshot {

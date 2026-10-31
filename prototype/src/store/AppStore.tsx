@@ -4,6 +4,7 @@ import { buildSeed, USERS } from '../mock-data/seed';
 import { todayISO } from '../lib/dates';
 import { buildSchedule, canSee, isClosed } from '../lib/rules';
 import { LIVE, ME_ID, type Settings, type Snapshot } from '../lib/cloud';
+import type { Backup } from '../lib/backup';
 
 export interface ProjectFilters {
   q: string;
@@ -41,6 +42,7 @@ export interface State {
   clients: Client[];
   people: User[];
   demo?: Settings['demo'];
+  lastBackup?: string;
   userId: string;
   route: Route;
   history: Route[];
@@ -58,6 +60,8 @@ type Msg =
   | { t: 'unperson'; id: string }
   | { t: 'removeDemo' }
   | { t: 'addDemo' }
+  | { t: 'backedUp'; at: string }
+  | { t: 'restore'; backup: Backup }
   | { t: 'scope'; projectId: string; scopeId: string; patch: Partial<Scope>; note?: string }
   | { t: 'status'; projectId: string; status: Status }
   | { t: 'archive'; projectId: string; archived: boolean }
@@ -75,7 +79,7 @@ const now = () => new Date().toISOString();
 function initial(route: Route = { page: 'dashboard' }, userId = 'u-pm1', snap?: Snapshot): State {
   if (snap) {
     const { projects, clients, people, settings } = snap;
-    return { projects, clients, people, demo: settings.demo, userId: ME_ID, route, history: [], read: settings.read, toast: null };
+    return { projects, clients, people, demo: settings.demo, lastBackup: settings.lastBackup, userId: ME_ID, route, history: [], read: settings.read, toast: null };
   }
   const { projects, clients } = buildSeed();
   return { projects, clients, people: USERS, userId, route, history: [], read: {}, toast: null };
@@ -220,6 +224,12 @@ function reducer(s: State, m: Msg): State {
       m.keys.forEach((k) => (read[k] = true));
       return { ...s, read };
     }
+    case 'backedUp':
+      return { ...s, lastBackup: m.at, toast: 'Backup downloaded' };
+    case 'restore': {
+      const { projects, clients, people, read, demo } = m.backup;
+      return { ...s, projects, clients, people, read, demo, route: { page: 'dashboard' }, history: [], toast: 'Backup restored' };
+    }
     case 'toast':
       return { ...s, toast: m.text };
     case 'reset':
@@ -348,7 +358,7 @@ export function shortName(id: string | null | undefined) {
   const n = PEOPLE.find((u) => u.id === id)?.name;
   if (!n) return 'Unassigned';
   const [f, ...rest] = n.split(' ');
-  return `${f[0]}. ${rest.join(' ')}`;
+  return rest.length ? `${f[0]}. ${rest.join(' ')}` : n;
 }
 
 export const openStatus = (p: Project) => !isClosed(p.status);

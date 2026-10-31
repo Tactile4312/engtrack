@@ -2,6 +2,7 @@ import { useState } from 'react';
 import { useApp } from '../store/AppStore';
 import { Button, Field, Modal, cx, inputCls } from './ui';
 import { validateClient, type ClientDraft, type Errors } from '../lib/validation';
+import { LIVE } from '../lib/cloud';
 import type { Client } from '../types';
 
 const uid = () => Math.random().toString(36).slice(2, 9);
@@ -67,7 +68,7 @@ export function ClientModal({ client, onClose, onSaved }: { client?: Client; onC
         <Field label="Notes" htmlFor="cf-notes">
           <textarea id="cf-notes" className={cx(inputCls(), 'h-20 py-2')} value={d.notes} onChange={(e) => set({ notes: e.target.value })} placeholder="Site access rules, reporting preferences" />
         </Field>
-        <p className="text-[11.5px] text-ink-3">Prototype: the new client is kept until the page is reloaded.</p>
+        {!LIVE && <p className="text-[11.5px] text-ink-3">Prototype: the new client is kept until the page is reloaded.</p>}
       </div>
     </Modal>
   );

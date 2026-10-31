@@ -4,6 +4,7 @@ import { shortName, useApp, userName } from '../store/AppStore';
 import { Avatar, Button, Card, DueFlag, Empty, Field, Modal, PriorityTag, Progress, StatusBadge, Tabs, cx, inputCls } from '../components/ui';
 import { can, isClosed, projectEngineers, projectProgress } from '../lib/rules';
 import { diffDays, fmt, relTime, showVal } from '../lib/dates';
+import { LIVE } from '../lib/cloud';
 import { STATUSES, type Project, type Scope, type Status } from '../types';
 
 type Tab = 'tasks' | 'notes' | 'files' | 'activity';
@@ -313,6 +314,7 @@ function Notes({ p }: { p: Project }) {
 }
 
 function Files() {
+  if (LIVE) return <p className="text-[13px] text-ink-2">File uploads are not available yet. Nothing has been attached to this project.</p>;
   const files = [['Client lift request.pdf', '1.2 MB'], ['Site layout plan.dwg', '3.8 MB'], ['Crane load chart 750t.pdf', '640 KB']];
   return (
     <div className="grid gap-2">

@@ -1,8 +1,12 @@
-import { useState } from 'react';
-import { Pencil, Plus, Trash2 } from 'lucide-react';
+import { useState, type ChangeEvent } from 'react';
+import { Download, Pencil, Plus, Trash2, Upload } from 'lucide-react';
 import { useApp } from '../store/AppStore';
 import { PageHead } from '../components/Shell';
 import { Avatar, Button, Card, Field, Modal, cx, inputCls } from '../components/ui';
+import { makeBackup, parseBackup, type Backup } from '../lib/backup';
+import { LIVE } from '../lib/cloud';
+import { fmt } from '../lib/dates';
+import { download } from '../lib/exporting';
 import type { Role, User } from '../types';
 
 // Job titles offered when adding a person. They decide which pickers a name appears in
@@ -85,6 +89,62 @@ export function RemoveSampleData({ compact }: { compact?: boolean }) {
   );
 }
 
+const BACKUP_DUE_DAYS = 7;
+
+/** Download all data as a file, or replace all data from one. The app has no automatic backups on the free database. */
+function BackupCard() {
+  const { s, dispatch, me, today } = useApp();
+  const [error, setError] = useState('');
+  const [pendingRestore, setPendingRestore] = useState<Backup | null>(null);
+
+  const due = !s.lastBackup || Date.now() - new Date(s.lastBackup).getTime() > BACKUP_DUE_DAYS * 86400000;
+
+  const backUp = () => {
+    setError('');
+    const at = new Date().toISOString();
+    const text = JSON.stringify(makeBackup(s, at), null, 2);
+    if (download(`engtrack-backup-${today}.json`, text, 'application/json')) dispatch({ t: 'backedUp', at });
+    else setError('This browser blocked the download. Try again in a normal browser tab.');
+  };
+
+  const choose = async (e: ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    e.target.value = '';
+    if (!file) return;
+    setError('');
+    setPendingRestore(null);
+    try {
+      setPendingRestore(parseBackup(await file.text(), me.id));
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'This file could not be read.');
+    }
+  };
+
+  return (
+    <Card title="Backup" aside={<span>{s.lastBackup ? `Last: ${fmt(s.lastBackup.slice(0, 10), true)}` : 'None yet'}</span>}>
+      <p className="text-[13px] text-ink-2">Download a copy of all your projects, clients and people. Keep it somewhere safe, such as a cloud drive.</p>
+      {due && <p className="mt-2 rounded-md border border-[#f1d58f] bg-[#fdf4dd] px-3 py-2 text-[12.5px] text-[#5c3d00]" id="backup-due">{s.lastBackup ? `Your last backup is more than ${BACKUP_DUE_DAYS} days old.` : 'You have not downloaded a backup yet.'}</p>}
+      <div className="mt-3 flex flex-wrap gap-2">
+        <Button kind="primary" id="backup-download" onClick={backUp}><Download size={15} />Download backup</Button>
+        <label className="inline-flex h-10 cursor-pointer items-center gap-2 rounded-md border border-line-2 bg-white px-3 text-[13px] font-medium text-ink hover:bg-paper focus-within:ring-2 focus-within:ring-brand">
+          <Upload size={15} aria-hidden />Restore from file
+          <input id="backup-file" type="file" accept=".json,application/json" className="sr-only" onChange={(e) => void choose(e)} />
+        </label>
+      </div>
+      {error && <p role="alert" className="mt-3 rounded-md border border-crit bg-crit-50 px-3 py-2 text-[13px] text-crit">{error}</p>}
+      {pendingRestore && (
+        <div className="mt-3 grid gap-2 rounded-md border border-crit bg-crit-50 p-3 text-[13px] text-ink" role="alert">
+          <p>Replace everything in EngTrack with this backup from <b>{fmt(pendingRestore.exportedAt.slice(0, 10), true)}</b>? It has {pendingRestore.projects.length} projects, {pendingRestore.clients.length} clients and {pendingRestore.people.length} people. Anything added since then will be lost, so download a backup first if you are unsure.</p>
+          <div className="flex flex-wrap gap-2">
+            <Button onClick={() => setPendingRestore(null)}>Cancel</Button>
+            <Button kind="primary" id="backup-restore-confirm" className="!border-crit !bg-crit" onClick={() => { dispatch({ t: 'restore', backup: pendingRestore }); setPendingRestore(null); }}>Replace my data</Button>
+          </div>
+        </div>
+      )}
+    </Card>
+  );
+}
+
 export function People() {
   const { s, me, dispatch, isMobile } = useApp();
   const [form, setForm] = useState<{ person?: User } | null>(null);
@@ -107,6 +167,7 @@ export function People() {
     <div className={isMobile ? 'grid gap-3 p-4' : 'grid max-w-[900px] gap-4 p-6'}>
       {form && <PersonModal person={form.person} onClose={() => setForm(null)} />}
       <PageHead title="People" sub="Names you can assign as engineer, project manager or salesperson. Only you can sign in." actions={addBtn} />
+      {LIVE && <BackupCard />}
       {s.demo ? <RemoveSampleData /> : <AddSampleData />}
       {blocked && <p role="alert" className="rounded-md border border-crit bg-crit-50 px-3 py-2 text-[13px] text-crit">{blocked}</p>}
       {groups.map(({ title, list }) => (
