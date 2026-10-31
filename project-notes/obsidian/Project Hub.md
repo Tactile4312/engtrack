@@ -2,7 +2,7 @@
 type: project
 status: active
 created: 2026-10-19
-updated: 2026-10-21
+updated: 2026-10-31
 tags:
   - project/engineering-crm
 summary: Engineering Project Management CRM & Tracker for an engineering company - projects with multiple engineering scopes, assignments, deadline reminders, Gantt/calendar, dashboards, reports, plus desktop/mobile wireframes and a clickable client prototype.
@@ -20,7 +20,7 @@ source: Spec pasted into Claude Code 2026-10-19, saved as REQUIREMENTS.md in the
 | Where the work happens | Claude Code, folder `[local project path]` |
 | GitHub | https://github.com/Tactile4312/engtrack (public, branch `main`, pushed 2026-10-20). `node_modules` and `prototype/dist` are not committed. Live prototype: https://tactile4312.github.io/engtrack/ (GitHub Pages from `docs/`) |
 | Spec | `REQUIREMENTS.md` in that folder (authoritative; confirmed decisions table at the top). Read-only copy: [[Requirements (copy)]]. Wireframes PDF: [[Engineering CRM - Wireframes v0.1.pdf]] |
-| Status (as of 2026-10-21) | v0.3 single-user live app done and **tested live** (sign-in, auto-save, add/remove sample data) against Supabase project `mdvhgdaigbtqrafmuajc`; sign-ups disabled. Built into `docs/` (live at root, demo at `/demo/`) and pushed as `fb3f305` (author cheesuskrays) and live on GitHub Pages, verified 2026-10-21. Supabase URL + publishable key live only in `prototype/.env.local` (not in git) |
+| Status (as of 2026-10-31) | v0.3.2 single-user app live on GitHub Pages (`923b276`, author cheesuskrays), using Supabase project `mdvhgdaigbtqrafmuajc`. Adds backups, crash screens, more tests and a GitHub check. Tested on a separate test project; signed-in use against real data **not yet checked** → [[Sessions/2026-10-31 - Backups, hardening and safer structure]]. Supabase URL + publishable key are not in source files, only in local env files and the built page |
 | Constraint | Free/open-source wherever possible; no mandatory paid APIs or subscriptions. Document any hosting limits or costs |
 | Constraint | Wireframes (low-fi, then polished) and a clickable prototype before the full build, so the client can review first |
 
@@ -51,6 +51,11 @@ source: Spec pasted into Claude Code 2026-10-19, saved as REQUIREMENTS.md in the
 - [x] Supabase project created, schema run, user created, sign-ups off (2026-10-21)
 - [x] Live mode tested end-to-end (2026-10-21)
 - [x] v0.3 pushed and live: sign-in at the Pages root, demo at `/demo/` (verified 2026-10-21)
+- [x] Backup and restore, safer code structure, GitHub check (v0.3.1 and v0.3.2, 2026-10-31)
+- [ ] Sign in to the live app, check the data, and download a real backup
+- [ ] Tell the client to refresh, and that weekly backups are now her job
+- [ ] Turn off sign-ups on the Supabase test project, or delete it
+- [ ] Update the 6 vulnerable development tools (no effect on the live app); plan `recharts` v3
 - [ ] Change/delete the test user test credentials were discussed privately
 - [ ] Confirm at the demo: should the Create form show the next free project number as a hint? (assumption built into v0.1)
 - [ ] Optional: PowerPoint deck from `design/polished-mockups/`
@@ -74,6 +79,7 @@ Follows the vault rule [[CLAUDE#Hard Rules|no secrets in notes]]. Here: secrets 
 
 ## Related
 
+- [[Sessions/2026-10-31 - Backups, hardening and safer structure]]
 - [[Sessions/2026-10-21 - Single-user live version v0.3]]
 - [[Decisions/Single-user trial on Supabase]]
 - [[Sessions/2026-10-20 - Hide real name in GitHub history]]
