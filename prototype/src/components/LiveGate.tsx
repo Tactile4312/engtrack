@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useRef, useState, type ReactNode } from 'react';
 import type { Session } from '@supabase/supabase-js';
+import { createAutosave } from '../lib/autosave';
 import { ME_ID, loadAll, saveDiff, saveSettings, setOwner, supabase, type Settings, type Snapshot } from '../lib/cloud';
 import { buildSeed, USERS } from '../mock-data/seed';
 import type { SaveState, State } from '../store/AppStore';
@@ -61,9 +62,16 @@ function Loaded({ session, render }: { session: Session; render: (snap: Snapshot
   const [error, setError] = useState('');
   const [save, setSave] = useState<SaveState>('saved');
   const saved = useRef<{ projects: State['projects']; clients: State['clients']; people: State['people']; settings: string } | null>(null);
-  const pending = useRef<State | null>(null);
-  const timer = useRef<ReturnType<typeof setTimeout>>();
-  const running = useRef(false);
+  const [autosave] = useState(() => createAutosave<State>(async (s) => {
+    const base = saved.current!;
+    const settings: Settings = { read: s.read, demo: s.demo, lastBackup: s.lastBackup };
+    await saveDiff('people', base.people, s.people);
+    await saveDiff('clients', base.clients, s.clients);
+    await saveDiff('projects', base.projects, s.projects);
+    const json = JSON.stringify(settings);
+    if (json !== base.settings) await saveSettings(settings);
+    saved.current = { projects: s.projects, clients: s.clients, people: s.people, settings: json };
+  }, setSave));
 
   useEffect(() => {
     setOwner(session.user.id);
@@ -88,43 +96,12 @@ function Loaded({ session, render }: { session: Session; render: (snap: Snapshot
     })();
   }, [session.user.id, session.user.email]);
 
-  const flush = useCallback(async () => {
-    if (running.current || !pending.current || !saved.current) return;
-    running.current = true;
-    const s = pending.current;
-    pending.current = null;
-    const settings: Settings = { read: s.read, demo: s.demo, lastBackup: s.lastBackup };
-    try {
-      const base = saved.current;
-      await saveDiff('people', base.people, s.people);
-      await saveDiff('clients', base.clients, s.clients);
-      await saveDiff('projects', base.projects, s.projects);
-      const json = JSON.stringify(settings);
-      if (json !== base.settings) await saveSettings(settings);
-      saved.current = { projects: s.projects, clients: s.clients, people: s.people, settings: json };
-      setSave(pending.current ? 'saving' : 'saved');
-    } catch {
-      // Keep the newest state queued and try again shortly.
-      pending.current = pending.current ?? s;
-      setSave('error');
-      timer.current = setTimeout(() => void flush(), 5000);
-      return;
-    } finally {
-      running.current = false;
-    }
-    if (pending.current) void flush();
-  }, []);
-
   const onState = useCallback((s: State) => {
     const base = saved.current;
     if (!base) return;
     const same = base.projects === s.projects && base.clients === s.clients && base.people === s.people && base.settings === JSON.stringify({ read: s.read, demo: s.demo, lastBackup: s.lastBackup });
-    if (same) return;
-    pending.current = s;
-    setSave('saving');
-    clearTimeout(timer.current);
-    timer.current = setTimeout(() => void flush(), 600);
-  }, [flush]);
+    if (!same) autosave.push(s);
+  }, [autosave]);
 
   // Warn before closing the tab with unsaved changes.
   useEffect(() => {
@@ -152,4 +129,3 @@ export function LiveGate({ render }: { render: (snap: Snapshot, onState: (s: Sta
   return <Loaded key={session.user.id} session={session} render={render} />;
 }
 
-export const signOut = () => supabase!.auth.signOut();

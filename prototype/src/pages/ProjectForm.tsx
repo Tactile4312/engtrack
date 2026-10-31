@@ -1,4 +1,5 @@
 import { useMemo, useRef, useState } from 'react';
+import { uid } from '../lib/ids';
 import { AlertTriangle, Check } from 'lucide-react';
 import { useApp } from '../store/AppStore';
 import { PageHead } from '../components/Shell';
@@ -8,7 +9,6 @@ import { validateProject, type Errors, type ProjectDraft, type ScopeDraft } from
 import { can, nextFreeNumber } from '../lib/rules';
 import { DEFAULT_MILESTONES, PRIORITIES, SCOPE_TYPES, STATUSES, type Priority, type Project, type Scope, type ScopeType, type Status } from '../types';
 
-const uid = () => Math.random().toString(36).slice(2, 9);
 const NEW_CLIENT = '__new';
 
 export function ProjectForm({ editId, copyFrom }: { editId?: string; copyFrom?: string }) {

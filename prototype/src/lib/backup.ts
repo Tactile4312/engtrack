@@ -1,6 +1,7 @@
 // Full backup of the signed-in user's data as a JSON file, and the checks a file must pass before it can replace live data.
 import type { Client, Project, User } from '../types';
 import type { Settings } from './cloud';
+import { normalizeProject } from './normalize';
 
 export interface Backup {
   app: 'engtrack';
@@ -44,10 +45,11 @@ export function parseBackup(text: string, meId: string): Backup {
   if (!isObject(raw) || raw.app !== 'engtrack') throw new Error('This file is not an EngTrack backup.');
   if (raw.version !== 1) throw new Error('This backup was made by a different version of EngTrack.');
   if (typeof raw.exportedAt !== 'string') throw new Error('The backup has no date.');
-  checkRecords(raw.projects, 'projects', ['number', 'name', 'createdAt', 'due', 'status'], ['scopes', 'tasks', 'milestones', 'notes', 'attachments', 'activity']);
+  checkRecords(raw.projects, 'projects', ['number', 'name', 'createdAt', 'due', 'status'], ['scopes']);
   checkRecords(raw.clients, 'clients', ['name']);
   checkRecords(raw.people, 'people', ['name', 'role']);
   if (!isObject(raw.read)) throw new Error('The backup has no reminder list.');
   if (!(raw.people as User[]).some((u) => u.id === meId)) throw new Error('This backup does not include your own entry.');
-  return raw as unknown as Backup;
+  const backup = raw as unknown as Backup;
+  return { ...backup, projects: backup.projects.map(normalizeProject) };
 }

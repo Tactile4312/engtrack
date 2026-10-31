@@ -11,6 +11,7 @@ import { Notifications } from './pages/Notifications';
 import { Reports } from './pages/Reports';
 import { Clients, More } from './pages/Clients';
 import { People } from './pages/People';
+import { ErrorBoundary } from './components/ErrorBoundary';
 import { LiveGate } from './components/LiveGate';
 import { LIVE } from './lib/cloud';
 
@@ -41,23 +42,25 @@ function Toast() {
   );
 }
 
-function Screen() {
+export function Screen() {
   const { s, isMobile, device } = useApp();
   const r = s.route;
+  // Keyed by route, so moving to another screen clears a previous failure.
+  const page = <ErrorBoundary key={JSON.stringify(r)}><Page r={r} /></ErrorBoundary>;
   const deep = r.page === 'project' || r.page === 'new' || r.page === 'edit';
   const title = r.page === 'project' ? r.id : r.page === 'new' ? 'New project' : r.page === 'edit' ? `Edit ${r.id}` : undefined;
 
   if (!isMobile) {
     return (
       <div className="relative flex min-h-0 flex-1">
-        <DesktopShell><Page r={r} /></DesktopShell>
+        <DesktopShell>{page}</DesktopShell>
         <Toast />
       </div>
     );
   }
   const app = (
     <div className="relative flex min-h-0 flex-1 flex-col overflow-hidden">
-      <MobileShell back={deep} title={title}><Page r={r} /></MobileShell>
+      <MobileShell back={deep} title={title}>{page}</MobileShell>
       <Toast />
     </div>
   );
@@ -84,17 +87,23 @@ const showBar = (() => {
 })();
 
 export default function App() {
-  if (LIVE) {
-    return (
-      <LiveGate
-        render={(snapshot, onState, save) => (
-          <AppProvider snapshot={snapshot} onState={onState} save={save}>
-            <div className="flex h-full flex-col"><Screen /></div>
-          </AppProvider>
-        )}
-      />
-    );
-  }
+  // Catches failures outside a single screen, such as the menu or the reminder count.
+  return <ErrorBoundary>{LIVE ? <LiveApp /> : <DemoApp />}</ErrorBoundary>;
+}
+
+function LiveApp() {
+  return (
+    <LiveGate
+      render={(snapshot, onState, save) => (
+        <AppProvider snapshot={snapshot} onState={onState} save={save}>
+          <div className="flex h-full flex-col"><Screen /></div>
+        </AppProvider>
+      )}
+    />
+  );
+}
+
+function DemoApp() {
   return (
     <AppProvider>
       <div className="flex h-full flex-col">

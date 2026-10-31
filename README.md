@@ -71,6 +71,28 @@ After `npm run build`, copy `prototype/dist/index.html` to `design/client-share/
 
 https://tactile4312.github.io/engtrack/ serves `docs/` from the `main` branch. To update: `npm run build && npm run build:demo` in `prototype/`, copy `prototype/dist/index.html` to `docs/index.html` and `prototype/dist-demo/index.html` to `docs/demo/index.html`, commit and push. GitHub takes a minute or two to publish.
 
+## Adding a feature safely
+
+Code depends in one direction, and `src/architecture.test.ts` fails if that breaks or files import each other in a loop:
+
+```
+pages/ -> components/ -> store/ -> lib/ -> types.ts
+```
+
+| Where it goes | What belongs there |
+|---|---|
+| `lib/` | Rules and calculations with no screen code; add tests beside them |
+| `store/reducer.ts` | Every change to app data, as a new message type in `store/state.ts`; add a test in `reducer.test.ts` |
+| `components/` | Pieces used by more than one screen |
+| `pages/` | One file per screen; add new screens to `SCREENS` in `src/smoke.test.tsx` |
+
+Rules that keep it from breaking:
+
+1. **New field on a saved record:** add its default in `lib/normalize.ts`. Records and backups saved earlier won't have it.
+2. **Never change objects in place.** Auto-save finds changes by comparing objects, so an in-place edit would never be saved.
+3. **Run `npm test` and `npm run build` before publishing.** GitHub runs the tests and the demo build on every push; don't publish on a red check.
+4. **Try risky changes on a separate Supabase test project,** never on the client's data.
+
 ## Backups and restoring
 
 The live app stores real data on a free Supabase project. This setup has no automatic backups you can rely on, and the free tier pauses a project after 7 days with no activity (as of 2026-10-21; check supabase.com/pricing).

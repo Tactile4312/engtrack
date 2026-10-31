@@ -1,11 +1,11 @@
 import { useState } from 'react';
+import { uid } from '../lib/ids';
 import { useApp } from '../store/AppStore';
 import { Button, Field, Modal, cx, inputCls } from './ui';
 import { validateClient, type ClientDraft, type Errors } from '../lib/validation';
 import { LIVE } from '../lib/cloud';
 import type { Client } from '../types';
 
-const uid = () => Math.random().toString(36).slice(2, 9);
 
 /** Add or edit a client. Calls onSaved with the stored record. */
 export function ClientModal({ client, onClose, onSaved }: { client?: Client; onClose: () => void; onSaved?: (c: Client) => void }) {

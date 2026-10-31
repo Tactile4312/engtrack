@@ -5,9 +5,8 @@ import {
 import { useApp, type Route } from '../store/AppStore';
 import { useInbox } from '../lib/hooks';
 import { Avatar, cx } from './ui';
-import { LIVE } from '../lib/cloud';
-import { signOut } from './LiveGate';
-import { PersonModal } from '../pages/People';
+import { LIVE, signOut } from '../lib/cloud';
+import { PersonModal } from './PersonModal';
 
 const NAV: { page: Route['page']; label: string; Icon: typeof Home }[] = [
   { page: 'dashboard', label: 'Dashboard', Icon: LayoutDashboard },

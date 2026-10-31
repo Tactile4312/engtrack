@@ -1,8 +1,7 @@
 import { useState } from 'react';
 import { BarChart3, Building2, CalendarDays, ChevronRight, LogOut, Mail, Pencil, Phone, Plus, Search, Users } from 'lucide-react';
-import { LIVE } from '../lib/cloud';
-import { signOut } from '../components/LiveGate';
-import { PersonModal } from './People';
+import { LIVE, signOut } from '../lib/cloud';
+import { PersonModal } from '../components/PersonModal';
 import { shortName, useApp } from '../store/AppStore';
 import { PageHead } from '../components/Shell';
 import { Avatar, Button, Card, Empty, StatusBadge } from '../components/ui';

@@ -2,6 +2,7 @@
 // The demo build (npm run build:demo) and a build without .env.local have no cloud and behave as the prototype.
 import { createClient, type SupabaseClient } from '@supabase/supabase-js';
 import type { Client, Project, User } from '../types';
+import { normalizeProject } from './normalize';
 
 const url = import.meta.env.VITE_SUPABASE_URL as string | undefined;
 const key = import.meta.env.VITE_SUPABASE_KEY as string | undefined;
@@ -12,6 +13,8 @@ export const supabase: SupabaseClient | null = LIVE ? createClient(url!, key!) :
 
 /** The signed-in person's own id in the people list. */
 export const ME_ID = 'me';
+
+export const signOut = () => supabase!.auth.signOut();
 
 export interface Settings {
   read: Record<string, true>;
@@ -42,7 +45,7 @@ async function rows<T>(table: Table): Promise<T[]> {
 
 export async function loadAll(): Promise<Snapshot> {
   const [projects, clients, people, settings] = await Promise.all([
-    rows<Project>('projects'),
+    rows<Project>('projects').then((list) => list.map(normalizeProject)),
     rows<Client>('clients'),
     rows<User>('people'),
     supabase!.from('settings').select('data').maybeSingle(),
