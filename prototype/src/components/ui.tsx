@@ -132,14 +132,14 @@ export function Field({ label, required, error, hint, children, htmlFor }: { lab
         {required && <span className="text-crit"> *</span>}
       </label>
       {children}
-      {error ? (
+      {error && (
         <p className="flex items-start gap-1 text-[12px] font-medium text-crit-700" role="alert">
           <AlertTriangle size={13} className="mt-[1px] shrink-0" aria-hidden />
           {error}
         </p>
-      ) : hint ? (
-        <p className="text-[12px] text-ink-3">{hint}</p>
-      ) : null}
+      )}
+      {/* The hint stays under an error: it often says how to fix it (e.g. the next free project number). */}
+      {hint && <p className="text-[12px] text-ink-3">{hint}</p>}
     </div>
   );
 }
