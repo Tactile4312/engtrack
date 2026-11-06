@@ -7,6 +7,7 @@ import { useInbox } from '../lib/hooks';
 import { Avatar, cx } from './ui';
 import { LIVE } from '../lib/cloud';
 import { PersonModal } from './PersonModal';
+import { openQuickSearch } from './CommandPalette';
 
 const NAV: { page: Route['page']; label: string; Icon: typeof Home }[] = [
   { page: 'dashboard', label: 'Dashboard', Icon: LayoutDashboard },
@@ -82,21 +83,19 @@ export function PrototypeBar() {
   );
 }
 
-function GlobalSearch({ big }: { big?: boolean }) {
-  const { go } = useApp();
-  const [q, setQ] = useState('');
+/** Looks like a search field; opens quick search (also Ctrl+K anywhere). */
+function SearchButton() {
+  const mac = typeof navigator !== 'undefined' && /Mac|iPhone|iPad/.test(navigator.platform);
   return (
-    <form
-      role="search"
-      className={cx('flex items-center gap-2 rounded-md border border-line-2 bg-white px-3', big ? 'h-11 w-full' : 'h-9 w-full max-w-[420px]')}
-      onSubmit={(e) => {
-        e.preventDefault();
-        go({ page: 'projects', filters: { q } });
-      }}
+    <button
+      id="search-open"
+      onClick={openQuickSearch}
+      className="group flex h-9 w-full max-w-[420px] items-center gap-2 rounded-lg border border-line-2 bg-white px-3 text-left text-[13.5px] text-ink-3 transition-[border-color,box-shadow] duration-150 hover:border-brand/50 hover:shadow-card"
     >
-      <Search size={16} className="text-ink-3" aria-hidden />
-      <input id="global-search" value={q} onChange={(e) => setQ(e.target.value)} placeholder="Search CRM no., project or client" className="w-full bg-transparent text-[13.5px] outline-none placeholder:text-ink-3" />
-    </form>
+      <Search size={16} className="transition-colors group-hover:text-brand" aria-hidden />
+      <span className="flex-1">Search projects, clients, screens…</span>
+      <kbd className="rounded border border-line-2 bg-paper px-1.5 py-0.5 font-sans text-[11px] text-ink-3">{mac ? '⌘' : 'Ctrl'} K</kbd>
+    </button>
   );
 }
 
@@ -137,24 +136,24 @@ export function DesktopShell({ children }: { children: ReactNode }) {
               key={page}
               onClick={() => go({ page } as Route)}
               aria-current={cur === page ? 'page' : undefined}
-              className={cx('flex items-center gap-3 rounded-md px-3 py-2 text-left', cur === page ? 'bg-rail-2 font-medium text-white' : 'text-rail-3 hover:bg-rail-2/60 hover:text-white')}
+              className={cx('relative flex items-center gap-3 rounded-md px-3 py-2 text-left transition-colors duration-150', cur === page ? 'bg-rail-2 font-medium text-white before:absolute before:inset-y-2 before:-left-3 before:w-1 before:animate-fade before:rounded-r before:bg-brand' : 'text-rail-3 hover:bg-rail-2/60 hover:text-white')}
             >
               <Icon size={17} aria-hidden />
               {label}
-              {page === 'notifications' && unread > 0 && <span className="ml-auto rounded-full bg-crit px-1.5 text-[11px] font-semibold text-white">{unread}</span>}
+              {page === 'notifications' && unread > 0 && <span key={unread} className="ml-auto animate-pop rounded-full bg-crit px-1.5 text-[11px] font-semibold text-white">{unread}</span>}
             </button>
           ))}
         </nav>
         <div className="flex-1" />
         {LIVE ? (
-          <button onClick={() => void signOut?.()} className="flex items-center gap-3 rounded-md px-3 py-2 text-left text-rail-3 hover:bg-rail-2/60 hover:text-white"><LogOut size={17} aria-hidden />Sign out</button>
+          <button onClick={() => void signOut?.()} className="flex items-center gap-3 rounded-md px-3 py-2 text-left text-rail-3 transition-colors duration-150 hover:bg-rail-2/60 hover:text-white"><LogOut size={17} aria-hidden />Sign out</button>
         ) : (
           <p className="px-3 text-[11px] leading-snug text-rail-3">Demo version<br />Sample records only</p>
         )}
       </aside>
       <div className="flex min-w-0 flex-1 flex-col">
-        <header className="flex h-[60px] shrink-0 items-center gap-4 border-b border-line bg-white px-6">
-          <GlobalSearch />
+        <header className="flex h-[60px] shrink-0 items-center gap-4 border-b border-line bg-white/90 px-6 backdrop-blur">
+          <SearchButton />
           <span className="flex-1" />
           <SaveBadge />
           <button onClick={() => go({ page: 'notifications' })} className="relative grid h-9 w-9 place-items-center rounded-full border border-line-2 text-ink-2 hover:bg-paper" aria-label={`Notifications, ${unread} unread`}>
@@ -205,12 +204,12 @@ export function MobileShell({ children, title, back }: { children: ReactNode; ti
         )}
       </header>
       <main className="min-h-0 flex-1 overflow-auto" id="main">{children}</main>
-      <nav className="grid shrink-0 grid-cols-5 border-t border-line bg-white pb-[max(8px,env(safe-area-inset-bottom))] pt-1.5" aria-label="Main">
+      <nav className="grid shrink-0 grid-cols-5 border-t border-line bg-white/95 pb-[max(8px,env(safe-area-inset-bottom))] pt-1.5 backdrop-blur" aria-label="Main">
         {tabs.map(({ page, label, Icon, badge }) => {
           const on = page === 'more' ? moreActive : cur === page;
           return (
-            <button key={page} onClick={() => go({ page } as Route)} aria-current={on ? 'page' : undefined} className={cx('relative flex min-h-[48px] flex-col items-center justify-center gap-0.5 text-[11px]', on ? 'font-semibold text-brand' : 'text-ink-3')}>
-              <Icon size={21} strokeWidth={on ? 2.3 : 1.8} aria-hidden />
+            <button key={page} onClick={() => go({ page } as Route)} aria-current={on ? 'page' : undefined} className={cx('relative flex min-h-[48px] flex-col items-center justify-center gap-0.5 text-[11px] transition-colors duration-150', on ? 'font-semibold text-brand' : 'text-ink-3')}>
+              <span key={String(on)} className={cx('grid h-7 w-14 place-items-center rounded-full transition-colors duration-200', on && 'animate-pop bg-brand-50')}><Icon size={21} strokeWidth={on ? 2.3 : 1.8} aria-hidden /></span>
               {label}
               {!!badge && <span className="absolute left-1/2 top-0 ml-2 rounded-full bg-crit px-1.5 text-[10px] font-semibold leading-4 text-white">{badge}</span>}
             </button>

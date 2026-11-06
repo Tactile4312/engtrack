@@ -1,9 +1,9 @@
 import { describe, expect, it } from 'vitest';
-import { buildSchedule, can, canEditClient, canSee, nextFreeNumber, projectProgress, sentTo } from './rules';
+import { buildSchedule, can, canEditClient, canSee, latestPerItem, nextFreeNumber, noticeSubject, projectProgress, sentTo } from './rules';
 import { validateClient, validateProject, type ClientDraft, type ProjectDraft } from './validation';
 import { addDays, todayISO } from './dates';
 import { buildSeed, USERS } from '../mock-data/seed';
-import type { Project } from '../types';
+import type { Project, Task } from '../types';
 
 const T = todayISO();
 const seed = () => buildSeed().projects;
@@ -73,6 +73,51 @@ describe('Q4 reminders', () => {
   it('stops once the project is completed', () => {
     const done = ps.map((p) => (p.number === 'CRM-2026-0116' ? { ...p, status: 'Completed' as const } : p));
     expect(buildSchedule(done).some((n) => n.projectId === 'CRM-2026-0116')).toBe(false);
+  });
+});
+
+describe('task reminders', () => {
+  const base = buildSeed().projects.find((p) => p.status === 'In Progress' && p.pmId)!;
+  const task = (over: Partial<Task>): Task => ({ id: 't-x', name: 'Order shackles', scopeId: null, assigneeId: 'u-e1', due: '2030-01-10', done: false, completed: null, ...over });
+  const withTask = (t: Task): Project => ({ ...base, archived: false, tasks: [t] });
+  const forTask = (p: Project) => buildSchedule([p]).filter((n) => n.itemType === 'task');
+
+  it('reminds the assignee 3 days and 1 day before, on the day, and when overdue', () => {
+    const got = forTask(withTask(task({}))).filter((n) => n.recipientId === 'u-e1');
+    expect([...new Set(got.map((n) => n.step))].sort()).toEqual(['1d', '3d', 'overdue', 'today']);
+    expect(got.find((n) => n.step === '3d')!.trigger).toBe('2030-01-07');
+  });
+
+  it('tells the project manager only when the task is overdue', () => {
+    const pm = forTask(withTask(task({}))).filter((n) => n.recipientId === base.pmId);
+    expect([...new Set(pm.map((n) => n.step))]).toEqual(['overdue']);
+  });
+
+  it('gives an unassigned task’s reminders to the project manager', () => {
+    const pm = forTask(withTask(task({ assigneeId: null }))).filter((n) => n.recipientId === base.pmId);
+    expect(pm.some((n) => n.step === '3d')).toBe(true);
+  });
+
+  it('sends nothing for a done task, a task without a due date, or a closed project', () => {
+    expect(forTask(withTask(task({ done: true })))).toEqual([]);
+    expect(forTask(withTask(task({ due: null })))).toEqual([]);
+    expect(forTask({ ...withTask(task({})), status: 'Completed' })).toEqual([]);
+  });
+
+  it('keeps a task’s reminders separate from its scope’s, one inbox line per task', () => {
+    const scope = base.scopes[0];
+    const p = withTask(task({ scopeId: scope.id, due: '2030-01-10' }));
+    const sent = sentTo(buildSchedule([{ ...p, scopes: [{ ...scope, due: '2030-01-10', status: 'In Progress', engineerId: 'u-e1' }] }]), 'u-e1', '2030-01-12');
+    const latest = latestPerItem(sent);
+    expect(latest.filter((n) => n.itemType === 'task')).toHaveLength(1);
+    expect(latest.filter((n) => n.itemType === 'scope' && n.scopeId === scope.id)).toHaveLength(1);
+  });
+
+  it('names the task on screen', () => {
+    const p = withTask(task({}));
+    expect(noticeSubject({ taskId: 't-x', scopeId: undefined }, p)).toEqual({ kind: 'Task', name: 'Order shackles', full: `Order shackles · ${p.name}` });
+    expect(noticeSubject({ scopeId: p.scopes[0].id }, p).kind).toBe('Scope');
+    expect(noticeSubject({}, p)).toEqual({ kind: 'Project', name: p.name, full: p.name });
   });
 });
 

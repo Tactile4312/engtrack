@@ -2,7 +2,7 @@ import { useMemo, useState } from 'react';
 import { ArrowDown, ArrowUp, ChevronRight, Download, Plus, Search, SlidersHorizontal, X } from 'lucide-react';
 import { EMPTY_FILTERS, shortName, useApp, type ProjectFilters } from '../store/AppStore';
 import { PageHead } from '../components/Shell';
-import { Button, Chip, DueFlag, Empty, Modal, PriorityTag, Progress, ScopeTags, StatusBadge, cx, inputCls } from '../components/ui';
+import { Button, Chip, DueFlag, Empty, Modal, PriorityTag, Progress, ScopeTags, StatusBadge, cx, inputCls, staggerAt } from '../components/ui';
 import { ExportModal } from '../components/ExportModal';
 import { filterProjects, type SortKey } from '../lib/metrics';
 import { can, projectEngineers, projectProgress } from '../lib/rules';
@@ -70,8 +70,8 @@ export function Projects({ initial }: { initial?: Partial<ProjectFilters> }) {
         </div>
         <p className="text-[12px] text-ink-3">{rows.length} project{rows.length === 1 ? '' : 's'}</p>
         {rows.length === 0 && <Empty title="No projects match">Try clearing a filter or searching for a different name.</Empty>}
-        <div className="grid gap-2.5">
-          {rows.map((p) => <ProjectCard key={p.id} p={p} client={clientNames[p.clientId]} />)}
+        <div className="stagger grid gap-2.5">
+          {rows.map((p, i) => <ProjectCard key={p.id} p={p} client={clientNames[p.clientId]} i={i} />)}
         </div>
         {sheet && (
           <Modal title="Filters" onClose={() => setSheet(false)} footer={<><Button onClick={() => { setF({ ...EMPTY_FILTERS }); setSheet(false); }}>Clear all</Button><Button kind="primary" onClick={() => setSheet(false)}>Show {rows.length}</Button></>}>
@@ -125,12 +125,12 @@ export function Projects({ initial }: { initial?: Partial<ProjectFilters> }) {
               <Th>Requested / start</Th><Th k="due">Due</Th><Th k="priority">Priority</Th><Th k="status" className="w-[150px]">Status / progress</Th>
             </tr>
           </thead>
-          <tbody>
-            {shown.map((p) => {
+          <tbody className="stagger">
+            {shown.map((p, i) => {
               const engs = projectEngineers(p);
               const late = p.due < today && p.status !== 'Completed' && p.status !== 'Cancelled';
               return (
-                <tr key={p.id} onClick={() => go({ page: 'project', id: p.id })} className={cx('cursor-pointer border-b border-line hover:bg-[#fdf6f9]', p.archived && 'opacity-60')}>
+                <tr key={p.id} style={staggerAt(i)} onClick={() => go({ page: 'project', id: p.id })} className={cx('cursor-pointer animate-fade border-b border-line transition-colors duration-150 hover:bg-[#fdf6f9]', p.archived && 'opacity-60')}>
                   <td className={cx('whitespace-nowrap px-2.5 py-2.5 font-mono text-[12px] text-ink', late && 'shadow-[inset_3px_0_0_#c2410c]')}>{p.number}</td>
                   <td className="max-w-[250px] px-2.5 py-2 leading-tight"><span className="block truncate font-medium text-ink">{p.name}</span><span className="block truncate text-[12px] text-ink-3">{clientNames[p.clientId]}{p.archived && ' · Archived'}</span></td>
                   <td className="whitespace-nowrap px-2.5 py-2.5"><ScopeTags types={p.scopes.map((x) => x.type)} /></td>
@@ -170,11 +170,11 @@ function Sel({ id, label, value, onChange, opts }: { id: string; label: string; 
   );
 }
 
-export function ProjectCard({ p, client }: { p: Project; client: string }) {
+export function ProjectCard({ p, client, i = 0 }: { p: Project; client: string; i?: number }) {
   const { go, today } = useApp();
   const late = p.due < today && p.status !== 'Completed' && p.status !== 'Cancelled';
   return (
-    <button onClick={() => go({ page: 'project', id: p.id })} className={cx('grid gap-1.5 rounded-xl border bg-white p-3.5 text-left active:bg-paper', late ? 'border-2 border-crit' : 'border-line')}>
+    <button onClick={() => go({ page: 'project', id: p.id })} style={staggerAt(i)} className={cx('grid animate-rise gap-1.5 rounded-xl border bg-white p-3.5 text-left shadow-card transition-[transform,box-shadow] duration-150 active:scale-[0.99] active:bg-paper', late ? 'border-2 border-crit' : 'border-line')}>
       <span className="flex items-center justify-between gap-2">
         <span className="font-mono text-[11.5px] text-ink-2">{p.number}</span>
         <DueFlag due={p.due} status={p.status} today={today} />

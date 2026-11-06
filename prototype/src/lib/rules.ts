@@ -108,6 +108,28 @@ export const RECIPIENT_RULES: Record<'engineer' | 'pm' | 'sales', ReminderStep[]
   sales: ['overdue'],
 };
 
+/** Tasks are smaller than scopes: no week-ahead reminder, and the PM only hears when one is late (or unassigned). */
+export const TASK_RULES: Record<'assignee' | 'pm', ReminderStep[]> = {
+  assignee: ['3d', '1d', 'today', 'overdue'],
+  pm: ['overdue'],
+};
+
+/** The item a reminder is about: its task, else its scope, else the project. */
+export const noticeItemId = (n: Pick<Notice, 'itemType' | 'projectId' | 'scopeId' | 'taskId'>) => `${n.itemType}:${n.taskId ?? n.scopeId ?? n.projectId}`;
+
+/** What to call a reminder's item on screen. */
+export function noticeSubject(n: Pick<Notice, 'scopeId' | 'taskId'>, p: Project): { kind: 'Project' | 'Scope' | 'Task'; name: string; full: string } {
+  if (n.taskId) {
+    const name = p.tasks.find((t) => t.id === n.taskId)?.name ?? 'Task';
+    return { kind: 'Task', name, full: `${name} · ${p.name}` };
+  }
+  if (n.scopeId) {
+    const name = p.scopes.find((s) => s.id === n.scopeId)?.type ?? 'Scope';
+    return { kind: 'Scope', name, full: `${name} · ${p.name}` };
+  }
+  return { kind: 'Project', name: p.name, full: p.name };
+}
+
 export const STEP_LABEL: Record<ReminderStep, string> = {
   '7d': 'Due in 7 days',
   '3d': 'Due in 3 days',
@@ -132,7 +154,7 @@ function triggers(due: ISODate): { step: ReminderStep; date: ISODate }[] {
 export function buildSchedule(projects: Project[]): Notice[] {
   const out = new Map<string, Notice>();
   const add = (n: Omit<Notice, 'key'>) => {
-    const key = `${n.itemType}:${n.scopeId ?? n.projectId}:${n.step}:${n.trigger}:${n.recipientId}`;
+    const key = `${noticeItemId(n)}:${n.step}:${n.trigger}:${n.recipientId}`;
     out.set(key, { ...n, key });
   };
   for (const p of projects) {
@@ -149,6 +171,15 @@ export function buildSchedule(projects: Project[]): Notice[] {
         if (RECIPIENT_RULES.engineer.includes(t.step)) it.engineers.forEach((e) => add({ ...base, recipientId: e }));
         if (RECIPIENT_RULES.pm.includes(t.step)) add({ ...base, recipientId: p.pmId });
         if (RECIPIENT_RULES.sales.includes(t.step)) add({ ...base, recipientId: p.salesId });
+      }
+    }
+    for (const task of p.tasks) {
+      if (task.done || !task.due) continue;
+      for (const t of triggers(task.due)) {
+        const base = { itemType: 'task', projectId: p.id, scopeId: task.scopeId ?? undefined, taskId: task.id, step: t.step, trigger: t.date, due: task.due } as const;
+        if (task.assigneeId && TASK_RULES.assignee.includes(t.step)) add({ ...base, recipientId: task.assigneeId });
+        const pmSteps = task.assigneeId ? TASK_RULES.pm : TASK_RULES.assignee;
+        if (p.pmId && pmSteps.includes(t.step)) add({ ...base, recipientId: p.pmId });
       }
     }
   }
@@ -172,7 +203,7 @@ export function upcomingFor(schedule: Notice[], userId: string | 'all', today: I
 export function latestPerItem(list: Notice[]): Notice[] {
   const seen = new Set<string>();
   return list.filter((n) => {
-    const k = `${n.itemType}:${n.scopeId ?? n.projectId}:${n.recipientId}`;
+    const k = `${noticeItemId(n)}:${n.recipientId}`;
     if (seen.has(k)) return false;
     seen.add(k);
     return true;

@@ -6,8 +6,10 @@ import { SyncBanner, type SyncProblem } from './SyncBanner';
 import { buildSeed, USERS } from '../mock-data/seed';
 import type { SaveState, State } from '../store/AppStore';
 import type { User } from '../types';
+import { Eye, EyeOff, Loader2 } from 'lucide-react';
 import { Logo } from './Shell';
-import { Button, Field, inputCls } from './ui';
+import { Button, Field, cx, inputCls } from './ui';
+import { AppSkeleton, BrandPanel } from './Welcome';
 
 /** First sign-in: the user's own entry plus the sample projects, clients and people (removable later). */
 function firstSnapshot(email: string): Snapshot {
@@ -24,6 +26,7 @@ function SignIn() {
   const [password, setPassword] = useState('');
   const [error, setError] = useState('');
   const [busy, setBusy] = useState(false);
+  const [show, setShow] = useState(false);
   const submit = async (e: React.FormEvent) => {
     e.preventDefault();
     setBusy(true);
@@ -37,18 +40,32 @@ function SignIn() {
     setBusy(false);
   };
   return (
-    <div className="grid h-full place-items-center bg-paper p-4">
-      <form onSubmit={submit} className="grid w-full max-w-[360px] gap-4 rounded-xl border border-line bg-white p-6 shadow-sm">
-        <Logo />
-        <h1 className="text-[18px] font-semibold text-ink">Sign in</h1>
-        <Field label="Email" htmlFor="si-email">
-          <input id="si-email" type="email" autoComplete="username" className={inputCls()} value={email} onChange={(e) => setEmail(e.target.value)} required />
-        </Field>
-        <Field label="Password" htmlFor="si-password" error={error || undefined}>
-          <input id="si-password" type="password" autoComplete="current-password" className={inputCls(error || undefined)} value={password} onChange={(e) => setPassword(e.target.value)} required />
-        </Field>
-        <Button kind="primary" type="submit" disabled={busy} className="h-11" id="si-submit">{busy ? 'Signing in…' : 'Sign in'}</Button>
-      </form>
+    <div className="grid h-full overflow-auto bg-paper lg:grid-cols-[minmax(0,1.1fr)_minmax(0,1fr)]">
+      <BrandPanel />
+      <div className="grid place-items-center p-4 sm:p-8">
+        <form onSubmit={submit} className="grid w-full max-w-[380px] animate-pop gap-4 rounded-2xl border border-line bg-white p-7 shadow-lift">
+          <div className="lg:hidden"><Logo /></div>
+          <div>
+            <h1 className="text-[22px] font-semibold tracking-tight text-ink">Sign in</h1>
+            <p className="mt-0.5 text-[13px] text-ink-3">Welcome back. Your projects are where you left them.</p>
+          </div>
+          <Field label="Email" htmlFor="si-email">
+            <input id="si-email" type="email" autoComplete="username" className={inputCls()} value={email} onChange={(e) => setEmail(e.target.value)} required />
+          </Field>
+          <Field label="Password" htmlFor="si-password" error={error || undefined}>
+            <div className="relative">
+              <input id="si-password" type={show ? 'text' : 'password'} autoComplete="current-password" className={cx(inputCls(error || undefined), 'pr-11')} value={password} onChange={(e) => setPassword(e.target.value)} required />
+              <button type="button" onClick={() => setShow((v) => !v)} aria-label={show ? 'Hide password' : 'Show password'} aria-pressed={show} className="absolute inset-y-0 right-0 grid w-10 place-items-center text-ink-3 transition-colors hover:text-ink">
+                {show ? <EyeOff size={16} aria-hidden /> : <Eye size={16} aria-hidden />}
+              </button>
+            </div>
+          </Field>
+          <Button kind="primary" type="submit" disabled={busy} className="h-11 text-[14px]" id="si-submit">
+            {busy && <Loader2 size={16} className="animate-spin" aria-hidden />}
+            {busy ? 'Signing in…' : 'Sign in'}
+          </Button>
+        </form>
+      </div>
     </div>
   );
 }
@@ -203,7 +220,7 @@ function Loaded({ session, render }: { session: Session; render: (live: LiveSess
   }, [save]);
 
   if (error) return <Message><div className="grid gap-2"><p className="font-semibold text-ink">Could not load your data.</p><p>{error}</p><p>Check your internet connection and reload the page.</p></div></Message>;
-  if (!snap) return <Message>Loading your projects…</Message>;
+  if (!snap) return <AppSkeleton />;
   return (
     <>
       {render({ snapshot: snap, onState, save: problem?.kind === 'conflict' ? 'conflict' : save, signOut: signOutSafely })}
@@ -219,7 +236,7 @@ export function LiveGate({ render }: { render: (live: LiveSession) => ReactNode 
     const { data } = supabase!.auth.onAuthStateChange((_e, sess) => setSession(sess));
     return () => data.subscription.unsubscribe();
   }, []);
-  if (session === undefined) return <Message>Loading…</Message>;
+  if (session === undefined) return <AppSkeleton />;
   if (!session) return <SignIn />;
   return <Loaded key={session.user.id} session={session} render={render} />;
 }

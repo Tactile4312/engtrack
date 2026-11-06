@@ -48,8 +48,9 @@ test('create project: an empty form is refused, a complete one is saved and open
   await page.locator('#pf-pm').selectOption({ index: 1 });
   await create.click();
 
-  await expect(page.getByText(`Project ${number} created`)).toBeVisible();
+  // The heading carries the new project number, which proves it was saved under it (the toast is too brief to rely on).
   await expect(page.getByRole('heading', { name: /E2E Flare Stack Lift/ })).toBeVisible();
+  await expect(page.getByRole('heading', { name: new RegExp(number) }).first()).toBeVisible();
   expect(problems).toEqual([]);
 });
 
@@ -144,4 +145,69 @@ test('removing a scope from a project moves its tasks to the whole project', asy
   await page.getByRole('button', { name: 'Save changes' }).click();
   const row = page.locator('div', { has: page.getByRole('checkbox', { name: 'Draft method statement' }) }).last();
   await expect(row.getByText(/^Whole project/)).toBeVisible();
+});
+
+test.describe('quick search', () => {
+  test('Ctrl+K finds a project by the end of its number and opens it with Enter', async ({ page }) => {
+    await watch(page);
+    await page.goto('/?bar=0&screen=dashboard');
+    await page.keyboard.press('Control+k');
+    const box = page.getByRole('combobox', { name: 'Search projects, clients and screens' });
+    await expect(box).toBeFocused();
+    await box.fill('0142');
+    await expect(page.getByRole('option').first()).toContainText('Reactor Vessel R-301 Lift');
+    await box.press('Enter');
+    await expect(page.getByRole('dialog', { name: 'Quick search' })).toHaveCount(0);
+    await expect(page.getByRole('heading', { name: /Reactor Vessel R-301 Lift/ })).toBeVisible();
+  });
+
+  test('arrow keys move through results, and Escape closes', async ({ page, isMobile }) => {
+    test.skip(isMobile, 'keyboard shortcut; phones use the search on the Projects screen');
+    await watch(page);
+    await page.goto('/?bar=0&screen=dashboard');
+    await page.locator('#search-open').click();
+    const box = page.getByRole('combobox', { name: 'Search projects, clients and screens' });
+    await box.fill('time');
+    await expect(page.getByRole('option', { name: /Timeline/ })).toBeVisible();
+    await box.press('ArrowDown');
+    await box.press('ArrowUp');
+    await expect(page.getByRole('option', { selected: true })).toContainText('Timeline');
+    await box.press('Enter');
+    await expect(page.getByRole('heading', { name: 'Timeline' })).toBeVisible();
+
+    await page.keyboard.press('Control+k');
+    await page.keyboard.press('Escape');
+    await expect(page.getByRole('dialog', { name: 'Quick search' })).toHaveCount(0);
+  });
+
+  test('says so when nothing matches', async ({ page }) => {
+    await watch(page);
+    await page.goto('/?bar=0&screen=projects');
+    await page.keyboard.press('Control+k');
+    await page.locator('#quick-search').fill('zzzz no such thing');
+    await expect(page.getByText(/Nothing matches/)).toBeVisible();
+  });
+});
+
+test('a task due tomorrow shows up as a reminder for the person it is assigned to', async ({ page }) => {
+  await watch(page);
+  await page.goto('/?bar=0&screen=project&id=CRM-2026-0142');
+  await page.getByRole('button', { name: 'Add task' }).click();
+  await page.locator('#task-name').fill('Confirm crane mats on site');
+  await page.locator('#task-assignee').selectOption({ label: 'Leo Santos' });
+  await page.locator('#task-due').fill(isoInDays(1));
+  await page.locator('#plan-save').click();
+  await expect(page.getByText('Confirm crane mats on site')).toBeVisible();
+
+  // The demo keeps changes in memory only, so move within the app rather than reloading.
+  await page.keyboard.press('Control+k');
+  await page.locator('#quick-search').fill('notifications');
+  await page.locator('#quick-search').press('Enter');
+  await page.getByRole('button', { name: 'All', exact: true }).click();
+  const reminder = page.getByRole('button', { name: /Confirm crane mats on site/ });
+  await expect(reminder).toContainText('Due tomorrow');
+  await expect(reminder).toContainText('Task');
+
+  await reminder.click();
+  await expect(page.getByRole('tab', { name: 'Tasks & milestones', selected: true })).toBeVisible();
 });

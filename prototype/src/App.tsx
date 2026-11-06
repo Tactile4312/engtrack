@@ -12,6 +12,7 @@ import { Reports } from './pages/Reports';
 import { Clients, More } from './pages/Clients';
 import { People } from './pages/People';
 import { ErrorBoundary } from './components/ErrorBoundary';
+import { CommandPalette } from './components/CommandPalette';
 import { LiveGate } from './components/LiveGate';
 import { LIVE } from './lib/cloud';
 
@@ -36,7 +37,7 @@ function Toast() {
   const { s } = useApp();
   if (!s.toast) return null;
   return (
-    <div role="status" className="pointer-events-none absolute bottom-24 left-1/2 z-[60] flex -translate-x-1/2 items-center gap-2 whitespace-nowrap rounded-full bg-ink px-4 py-2 text-[13px] font-medium text-white shadow-lg">
+    <div key={s.toast} role="status" className="pointer-events-none absolute bottom-24 left-1/2 z-[60] flex -translate-x-1/2 animate-toast items-center gap-2 whitespace-nowrap rounded-full bg-ink px-4 py-2 text-[13px] font-medium text-white shadow-pop">
       <CheckCircle2 size={16} className="text-[#7fd17f]" aria-hidden />{s.toast}
     </div>
   );
@@ -46,7 +47,7 @@ export function Screen() {
   const { s, isMobile, device } = useApp();
   const r = s.route;
   // Keyed by route, so moving to another screen clears a previous failure.
-  const page = <ErrorBoundary key={JSON.stringify(r)}><Page r={r} /></ErrorBoundary>;
+  const page = <ErrorBoundary key={JSON.stringify(r)}><div className="h-full animate-fade"><Page r={r} /></div></ErrorBoundary>;
   const deep = r.page === 'project' || r.page === 'new' || r.page === 'edit';
   const title = r.page === 'project' ? r.id : r.page === 'new' ? 'New project' : r.page === 'edit' ? `Edit ${r.id}` : undefined;
 
@@ -55,6 +56,7 @@ export function Screen() {
       <div className="relative flex min-h-0 flex-1">
         <DesktopShell>{page}</DesktopShell>
         <Toast />
+      <CommandPalette />
       </div>
     );
   }
@@ -62,6 +64,7 @@ export function Screen() {
     <div className="relative flex min-h-0 flex-1 flex-col overflow-hidden">
       <MobileShell back={deep} title={title}>{page}</MobileShell>
       <Toast />
+      <CommandPalette />
     </div>
   );
   // Forced mobile preview on a wide screen: show the app inside a 390 x 844 phone frame.

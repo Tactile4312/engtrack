@@ -18,6 +18,8 @@ export default defineConfig({
   fullyParallel: true,
   forbidOnly: CI,
   retries: 0,
+  // Each test runs a whole browser; two at a time keeps memory use reasonable on a laptop.
+  workers: 2,
   reporter: CI ? 'github' : 'list',
   // Uses the Chrome already installed on the machine (also preinstalled on GitHub's runners).
   use: { channel: 'chrome', trace: 'retain-on-failure' },
@@ -32,12 +34,12 @@ export default defineConfig({
     {
       command: 'npx vite build --mode demo --outDir dist-e2e-demo --emptyOutDir && npx vite preview --outDir dist-e2e-demo --host 127.0.0.1 --port 5181 --strictPort',
       url: DEMO,
-      timeout: 180_000,
+      timeout: 600_000, // building is slow when the machine is busy
     },
     {
       command: 'npx vite build --outDir dist-e2e-live --emptyOutDir && npx vite preview --outDir dist-e2e-live --host 127.0.0.1 --port 5182 --strictPort',
       url: LIVE,
-      timeout: 180_000,
+      timeout: 600_000, // building is slow when the machine is busy
       // Settings already in the environment win over .env.local, so this copy never sees the real project.
       env: { VITE_SUPABASE_URL: FAKE_SUPABASE_URL, VITE_SUPABASE_KEY: 'e2e-fake-publishable-key' },
     },

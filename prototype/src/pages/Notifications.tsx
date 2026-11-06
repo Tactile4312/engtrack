@@ -5,13 +5,14 @@ import { PageHead } from '../components/Shell';
 import { Button, Card, Chip, Empty, cx } from '../components/ui';
 import { useInbox, type InboxItem } from '../lib/hooks';
 import { fmt } from '../lib/dates';
-import { RECIPIENT_RULES, STEP_LABEL } from '../lib/rules';
+import { RECIPIENT_RULES, STEP_LABEL, noticeSubject } from '../lib/rules';
 import { LIVE } from '../lib/cloud';
 import type { ReminderStep } from '../types';
 
 type F = 'unread' | 'all' | 'overdue' | 'today';
 
 function roleOn(n: InboxItem, userId: string) {
+  if (n.taskId && n.project.tasks.find((t) => t.id === n.taskId)?.assigneeId === userId) return 'task owner';
   if (n.project.pmId === userId) return 'project manager';
   if (n.project.salesId === userId) return 'salesperson';
   return 'assigned engineer';
@@ -26,7 +27,8 @@ export function Notifications() {
   const list = items.filter((n) => (f === 'unread' ? !n.read : f === 'overdue' ? n.step === 'overdue' : f === 'today' ? n.step === 'today' : true));
   const open = (n: InboxItem) => {
     dispatch({ t: 'read', keys: [n.key] });
-    go({ page: 'project', id: n.projectId, scopeId: n.scopeId });
+    // A task reminder opens the project on its Tasks tab; a scope reminder opens that scope.
+    go(n.taskId ? { page: 'project', id: n.projectId, tab: 'tasks' } : { page: 'project', id: n.projectId, scopeId: n.scopeId });
   };
 
   const rows = list.length === 0 ? (
@@ -34,7 +36,7 @@ export function Notifications() {
   ) : (
     list.map((n) => {
       const Icon = ICON[n.step];
-      const scope = n.scopeId ? n.project.scopes.find((s) => s.id === n.scopeId) : undefined;
+      const subject = noticeSubject(n, n.project);
       return (
         <button key={n.key} onClick={() => open(n)} className={cx('flex w-full items-start gap-3 border-b border-line px-4 py-3 text-left last:border-0 hover:bg-[#fdf6f9]', !n.read && 'bg-[#fdf6f9]')}>
           <span className={cx('mt-1.5 h-2.5 w-2.5 shrink-0 rounded-full', n.read ? 'border-[1.5px] border-line-2' : 'bg-brand')} aria-label={n.read ? 'Read' : 'Unread'} />
@@ -42,9 +44,9 @@ export function Notifications() {
           <span className="min-w-0 flex-1">
             <span className="flex flex-wrap items-center gap-x-2 text-[13.5px]">
               <b className={cx('font-semibold', n.step === 'overdue' ? 'text-crit-700' : 'text-ink')}>{STEP_LABEL[n.step]}</b>
-              <span className={cx('rounded px-1.5 text-[10.5px] font-semibold uppercase tracking-wide', scope ? 'border border-line-2 text-ink-2' : 'bg-ink text-white')}>{scope ? 'Scope' : 'Project'}</span>
+              <span className={cx('rounded px-1.5 text-[10.5px] font-semibold uppercase tracking-wide', subject.kind === 'Project' ? 'bg-ink text-white' : subject.kind === 'Task' ? 'bg-brand-50 text-brand-700' : 'border border-line-2 text-ink-2')}>{subject.kind}</span>
             </span>
-            <span className={cx('block text-[13.5px]', n.read ? 'text-ink-2' : 'font-medium text-ink')}>{scope ? `${scope.type} · ${n.project.name}` : n.project.name}</span>
+            <span className={cx('block text-[13.5px]', n.read ? 'text-ink-2' : 'font-medium text-ink')}>{subject.full}</span>
             <span className="block text-[12px] text-ink-3">{n.project.number} · due {fmt(n.due, true)} · {LIVE ? `reminder from ${fmt(n.trigger)}` : `sent ${fmt(n.trigger)} to you as ${roleOn(n, me.id)}`}</span>
           </span>
           <ChevronRight size={16} className="mt-2 shrink-0 text-ink-3" aria-hidden />
@@ -87,7 +89,7 @@ export function Notifications() {
             {upcoming.slice(0, 8).map((n) => (
               <div key={n.key} className="flex gap-2 border-b border-line py-1.5 text-[12.5px] last:border-0">
                 <span className="w-[46px] shrink-0 font-mono text-[11.5px] text-ink">{fmt(n.trigger)}</span>
-                <span className="min-w-0 text-ink-2">{STEP_LABEL[n.step]} · {n.scopeId ? n.project.scopes.find((s) => s.id === n.scopeId)?.type : 'Project'} <span className="text-ink-3">({n.project.number.slice(-4)})</span></span>
+                <span className="min-w-0 text-ink-2">{STEP_LABEL[n.step]} · {noticeSubject(n, n.project).name} <span className="text-ink-3">({n.project.number.slice(-4)})</span></span>
               </div>
             ))}
           </Card>

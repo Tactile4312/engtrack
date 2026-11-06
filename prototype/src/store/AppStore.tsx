@@ -2,7 +2,7 @@ import { createContext, useContext, useEffect, useMemo, useReducer, useState, ty
 import type { Notice, Project, Role, User } from '../types';
 import { USERS } from '../mock-data/seed';
 import { todayISO } from '../lib/dates';
-import { buildSchedule, canSee, isClosed } from '../lib/rules';
+import { buildSchedule, canSee, isClosed, noticeItemId } from '../lib/rules';
 import { LIVE, ME_ID, type Snapshot } from '../lib/cloud';
 import { reducer } from './reducer';
 import { initial, EMPTY_FILTERS, type Msg, type ProjectFilters, type Route, type State } from './state';
@@ -65,7 +65,7 @@ function readParams(): { route?: Route; device?: Device; user?: string } {
 function forOneUser(list: Notice[]): Notice[] {
   const out = new Map<string, Notice>();
   for (const n of list) {
-    const key = `${n.itemType}:${n.scopeId ?? n.projectId}:${n.step}:${n.trigger}:${ME_ID}`;
+    const key = `${noticeItemId(n)}:${n.step}:${n.trigger}:${ME_ID}`;
     out.set(key, { ...n, key, recipientId: ME_ID });
   }
   return [...out.values()];

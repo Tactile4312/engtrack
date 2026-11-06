@@ -1,8 +1,8 @@
-import { AlertTriangle, ChevronRight, Plus } from 'lucide-react';
+import { AlertTriangle, CalendarDays, CheckCircle2, ChevronRight, Clock, FolderKanban, Inbox, PauseCircle, PlayCircle, Plus, type LucideIcon } from 'lucide-react';
 import { shortName, useApp, userName, type ProjectFilters } from '../store/AppStore';
 import { PageHead } from '../components/Shell';
 import { RemoveSampleData } from './People';
-import { Avatar, Button, Card, DueFlag, cx } from '../components/ui';
+import { Avatar, Button, Card, CountUp, DueFlag, cx, staggerAt } from '../components/ui';
 import { BarList, MonthlyColumns, Ratio, SplitBars } from '../components/charts';
 import { byScope, byStatus, deadlines, monthly, recentActivity, summary, workload, type Deadline } from '../lib/metrics';
 import { diffDays, fmt, fmtLong, relTime, showVal } from '../lib/dates';
@@ -25,20 +25,35 @@ export function DeadlineRow({ d, onOpen }: { d: Deadline; onOpen: () => void; co
   );
 }
 
-function Kpi({ label, value, sub, alert, onClick }: { label: string; value: number; sub?: string; alert?: boolean; onClick: () => void }) {
+function Kpi({ label, value, sub, alert, Icon, i = 0, onClick }: { label: string; value: number; sub?: string; alert?: boolean; Icon: LucideIcon; i?: number; onClick: () => void }) {
+  const hot = alert && value > 0;
   return (
     <button
       onClick={onClick}
-      className={cx('min-w-0 rounded-lg border bg-white px-3.5 py-3 text-left transition-shadow hover:shadow-md focus-visible:outline focus-visible:outline-2 focus-visible:outline-brand', alert && value > 0 ? 'border-crit/60 bg-crit-50/40' : 'border-line')}
+      style={staggerAt(i)}
+      className={cx(
+        'group min-w-0 animate-rise rounded-xl border bg-white px-3.5 py-3 text-left shadow-card transition-[box-shadow,transform,border-color] duration-200 hover:-translate-y-0.5 hover:shadow-lift active:translate-y-0 focus-visible:outline focus-visible:outline-2 focus-visible:outline-brand',
+        hot ? 'border-crit/60 bg-gradient-to-br from-crit-50/70 to-white' : 'border-line hover:border-line-2',
+      )}
     >
-      <span className="flex items-center gap-1.5 text-[12px] text-ink-2">
-        {alert && value > 0 && <AlertTriangle size={13} className="text-crit" aria-hidden />}
-        {label}
+      <span className="flex min-w-0 items-center gap-1.5 text-[12px] text-ink-2">
+        {hot && <AlertTriangle size={13} className="shrink-0 text-crit" aria-hidden />}
+        <span className="truncate">{label}</span>
       </span>
-      <span className={cx('mt-0.5 block text-[28px] font-semibold leading-tight', alert && value > 0 ? 'text-crit-700' : 'text-ink')}>{value}</span>
-      <span className="block truncate text-[11.5px] text-ink-3">{sub ?? ' '}</span>
+      <span className="mt-0.5 flex items-center justify-between gap-2">
+        <span className={cx('text-[28px] font-semibold leading-tight', hot ? 'text-crit-700' : 'text-ink')}><CountUp value={value} /></span>
+        <span className={cx('grid h-7 w-7 shrink-0 place-items-center rounded-lg transition-transform duration-200 group-hover:scale-110', hot ? 'bg-crit text-white' : 'bg-brand-50 text-brand')}>
+          <Icon size={15} aria-hidden />
+        </span>
+      </span>
+      <span className="block truncate text-[11.5px] text-ink-3">{sub ?? ' '}</span>
     </button>
   );
+}
+
+/** "Good morning" and so on, from the device's clock. */
+function greeting(hour = new Date().getHours()) {
+  return hour < 12 ? 'Good morning' : hour < 18 ? 'Good afternoon' : 'Good evening';
 }
 
 export function Dashboard() {
@@ -55,14 +70,14 @@ export function Dashboard() {
 
   const kpis = (
     <>
-      <Kpi label="Total projects" value={sm.total} sub="all statuses" onClick={() => toList({ showCompleted: true })} />
-      <Kpi label="New requests" value={sm.newRequests} sub="awaiting review" onClick={() => toList({ status: 'New Request' })} />
-      <Kpi label="Active" value={sm.active} sub="being worked on" onClick={() => toList({})} />
-      <Kpi label="Due today" value={sm.dueToday} sub={scopeNote(sm.dueTodayScopes)} alert onClick={() => toList({ due: 'today' })} />
-      <Kpi label="Due this week" value={sm.dueWeek} sub={scopeNote(sm.dueWeekScopes)} onClick={() => toList({ due: 'week' })} />
-      <Kpi label="Overdue" value={sm.overdue} sub={scopeNote(sm.overdueScopes)} alert onClick={() => toList({ due: 'overdue' })} />
-      <Kpi label="Completed" value={sm.completed} sub="all time" onClick={() => toList({ status: 'Completed' })} />
-      <Kpi label="On hold" value={sm.onHold} sub={' '} onClick={() => toList({ status: 'On Hold' })} />
+      <Kpi i={0} Icon={FolderKanban} label="Total projects" value={sm.total} sub="all statuses" onClick={() => toList({ showCompleted: true })} />
+      <Kpi i={1} Icon={Inbox} label="New requests" value={sm.newRequests} sub="awaiting review" onClick={() => toList({ status: 'New Request' })} />
+      <Kpi i={2} Icon={PlayCircle} label="Active" value={sm.active} sub="being worked on" onClick={() => toList({})} />
+      <Kpi i={3} Icon={Clock} label="Due today" value={sm.dueToday} sub={scopeNote(sm.dueTodayScopes)} alert onClick={() => toList({ due: 'today' })} />
+      <Kpi i={4} Icon={CalendarDays} label="Due this week" value={sm.dueWeek} sub={scopeNote(sm.dueWeekScopes)} onClick={() => toList({ due: 'week' })} />
+      <Kpi i={5} Icon={AlertTriangle} label="Overdue" value={sm.overdue} sub={scopeNote(sm.overdueScopes)} alert onClick={() => toList({ due: 'overdue' })} />
+      <Kpi i={6} Icon={CheckCircle2} label="Completed" value={sm.completed} sub="all time" onClick={() => toList({ status: 'Completed' })} />
+      <Kpi i={7} Icon={PauseCircle} label="On hold" value={sm.onHold} sub={' '} onClick={() => toList({ status: 'On Hold' })} />
     </>
   );
 
@@ -88,7 +103,7 @@ export function Dashboard() {
     return (
       <div className="grid gap-3 p-4">
         <div>
-          <h1 className="text-[20px] font-semibold text-ink">Hello, {me.name.split(' ')[0]}</h1>
+          <h1 className="text-[20px] font-semibold text-ink">{greeting()}, {me.name.split(' ')[0]}</h1>
           <p className="text-[12.5px] text-ink-3">{fmtLong(today)}</p>
         </div>
         <RemoveSampleData compact />
@@ -99,11 +114,11 @@ export function Dashboard() {
             <ChevronRight size={18} className="text-ink-3" aria-hidden />
           </button>
         )}
-        <div className="grid grid-cols-2 gap-2.5">
-          <Kpi label="Due today" value={sm.dueToday} sub={scopeNote(sm.dueTodayScopes)} alert onClick={() => toList({ due: 'today' })} />
-          <Kpi label="Due this week" value={sm.dueWeek} sub={scopeNote(sm.dueWeekScopes)} onClick={() => toList({ due: 'week' })} />
-          <Kpi label="Active" value={sm.active} onClick={() => toList({})} />
-          <Kpi label="New requests" value={sm.newRequests} onClick={() => toList({ status: 'New Request' })} />
+        <div className="stagger grid grid-cols-2 gap-2.5">
+          <Kpi i={0} Icon={Clock} label="Due today" value={sm.dueToday} sub={scopeNote(sm.dueTodayScopes)} alert onClick={() => toList({ due: 'today' })} />
+          <Kpi i={1} Icon={CalendarDays} label="Due this week" value={sm.dueWeek} sub={scopeNote(sm.dueWeekScopes)} onClick={() => toList({ due: 'week' })} />
+          <Kpi i={2} Icon={PlayCircle} label="Active" value={sm.active} onClick={() => toList({})} />
+          <Kpi i={3} Icon={Inbox} label="New requests" value={sm.newRequests} onClick={() => toList({ status: 'New Request' })} />
         </div>
         <Card title="Upcoming deadlines" aside={<span>next 14 days</span>}>
           {upcoming.length ? upcoming.map((d) => <DeadlineRow key={(d.scope?.id ?? d.project.id) + d.kind} d={d} onOpen={() => openD(d)} compact />) : <p className="py-4 text-center text-[13px] text-ink-3">No deadlines in the next 14 days.</p>}
@@ -124,12 +139,12 @@ export function Dashboard() {
     <div className="grid gap-4 p-6">
       <PageHead
         title="Dashboard"
-        sub={<>{fmtLong(today)}{restricted && <> · showing the {visible.length} projects {me.role === 'Engineer' ? 'assigned to you' : 'for your clients'}</>}</>}
+        sub={<>{greeting()}, {me.name.split(' ')[0]} · {fmtLong(today)}{restricted && <> · showing the {visible.length} projects {me.role === 'Engineer' ? 'assigned to you' : 'for your clients'}</>}</>}
         actions={can(me, 'create') && <Button kind="primary" onClick={() => go({ page: 'new' })}><Plus size={16} />New project</Button>}
       />
       <RemoveSampleData compact />
-      <div className="grid grid-cols-4 gap-3 xl:grid-cols-8">{kpis}</div>
-      <div className="grid grid-cols-2 gap-4 xl:grid-cols-4">
+      <div className="stagger grid grid-cols-4 gap-3 xl:grid-cols-8">{kpis}</div>
+      <div className="stagger grid grid-cols-2 gap-4 xl:grid-cols-4 [&>*]:animate-rise">
         <Card title="Projects by status"><BarList rows={byStatus(visible)} onPick={(s) => toList({ status: s as ProjectFilters['status'], showCompleted: true })} /></Card>
         <Card title="Projects by engineering scope" aside={<span>a project can have several</span>}><BarList rows={byScope(visible)} onPick={(s) => toList({ scope: s })} /></Card>
         <Card title="Completed per month" aside={<span>last 6 months</span>}><MonthlyColumns data={monthly(visible, today)} /></Card>
@@ -141,7 +156,7 @@ export function Dashboard() {
           </div>
         </Card>
       </div>
-      <div className="grid grid-cols-2 gap-4 xl:grid-cols-4">
+      <div className="stagger grid grid-cols-2 gap-4 xl:grid-cols-4 [&>*]:animate-rise">
         <Card title="Upcoming deadlines" aside={<span>next 14 days</span>}>
           {upcoming.length ? upcoming.map((d) => <DeadlineRow key={(d.scope?.id ?? d.project.id) + d.kind} d={d} onOpen={() => openD(d)} />) : <p className="py-6 text-center text-[13px] text-ink-3">No deadlines in the next 14 days.</p>}
         </Card>

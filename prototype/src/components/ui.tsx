@@ -1,4 +1,4 @@
-import { useEffect, type ReactNode } from 'react';
+import { useEffect, useRef, useState, type ReactNode } from 'react';
 import {
   AlertTriangle, CheckCircle2, CircleDot, Clock, Eye, PauseCircle, PlayCircle, X, XCircle,
 } from 'lucide-react';
@@ -52,7 +52,7 @@ export function Progress({ value, size = 'sm', label = true }: { value: number; 
   return (
     <div className="flex min-w-0 items-center gap-2" role="img" aria-label={`${value}% complete`}>
       <div className={cx('relative w-full min-w-[48px] overflow-hidden rounded-full bg-[#e3e8ed]', h)}>
-        <div className={cx('absolute inset-y-0 left-0 rounded-full', value >= 100 ? 'bg-[#127a12]' : 'bg-[#c72a6b]')} style={{ width: `${value}%` }} />
+        <div className={cx('absolute inset-y-0 left-0 origin-left animate-grow rounded-full transition-[width] duration-500 ease-out', value >= 100 ? 'bg-[#127a12]' : 'bg-[#c72a6b]')} style={{ width: `${value}%` }} />
       </div>
       {label && <span className={cx('shrink-0 tabular-nums text-ink-2', size === 'lg' ? 'text-base font-semibold text-ink' : 'text-[12px]')}>{value}%</span>}
     </div>
@@ -93,7 +93,7 @@ export function ScopeTags({ types, max = 1 }: { types: ScopeType[]; max?: number
 
 export function Card({ title, aside, children, className, pad = true, onTitleClick }: { title?: ReactNode; aside?: ReactNode; children: ReactNode; className?: string; pad?: boolean; onTitleClick?: () => void }) {
   return (
-    <section className={cx('min-w-0 rounded-lg border border-line bg-paper-2', className)}>
+    <section className={cx('min-w-0 rounded-xl border border-line bg-paper-2 shadow-card', className)}>
       {title && (
         <header className="flex items-center justify-between gap-3 px-4 pb-1 pt-3">
           <h3 className={cx('text-[13.5px] font-semibold text-ink', onTitleClick && 'cursor-pointer hover:underline')} onClick={onTitleClick}>{title}</h3>
@@ -108,7 +108,7 @@ export function Card({ title, aside, children, className, pad = true, onTitleCli
 type BtnKind = 'primary' | 'secondary' | 'ghost' | 'danger';
 export function Button({ kind = 'secondary', children, className, ...rest }: React.ButtonHTMLAttributes<HTMLButtonElement> & { kind?: BtnKind }) {
   const k: Record<BtnKind, string> = {
-    primary: 'bg-brand text-white hover:bg-brand-600 border-brand',
+    primary: 'bg-brand text-white hover:bg-brand-600 border-brand shadow-[0_1px_2px_rgba(136,14,64,0.25)] hover:shadow-[0_4px_12px_-2px_rgba(199,42,107,0.45)]',
     secondary: 'bg-white text-ink border-line-2 hover:bg-paper',
     ghost: 'bg-transparent text-ink-2 border-transparent hover:bg-[#e9edf1]',
     danger: 'bg-crit text-white border-crit hover:bg-crit-700',
@@ -117,7 +117,7 @@ export function Button({ kind = 'secondary', children, className, ...rest }: Rea
     <button
       type="button"
       {...rest}
-      className={cx('inline-flex h-9 items-center justify-center gap-1.5 whitespace-nowrap rounded-md border px-3 text-[13px] font-medium transition-colors focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand disabled:cursor-not-allowed disabled:opacity-50', k[kind], className)}
+      className={cx('inline-flex h-9 items-center justify-center gap-1.5 whitespace-nowrap rounded-md border px-3 text-[13px] font-medium transition-[color,background-color,border-color,box-shadow,transform] duration-150 enabled:active:scale-[0.97] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand disabled:cursor-not-allowed disabled:opacity-50', k[kind], className)}
     >
       {children}
     </button>
@@ -145,7 +145,7 @@ export function Field({ label, required, error, hint, children, htmlFor }: { lab
 }
 
 export const inputCls = (err?: string) =>
-  cx('h-10 w-full min-w-0 rounded-md border bg-white px-3 text-[13.5px] text-ink outline-none focus:border-brand focus:ring-2 focus:ring-brand-100', err ? 'border-crit ring-2 ring-crit-50' : 'border-line-2');
+  cx('h-10 w-full min-w-0 rounded-md border bg-white px-3 text-[13.5px] text-ink outline-none transition-[border-color,box-shadow] duration-150 focus:border-brand focus:ring-2 focus:ring-brand-100', err ? 'border-crit ring-2 ring-crit-50' : 'border-line-2');
 
 export function Modal({ title, onClose, children, footer, wide }: { title: string; onClose: () => void; children: ReactNode; footer?: ReactNode; wide?: boolean }) {
   useEffect(() => {
@@ -154,8 +154,8 @@ export function Modal({ title, onClose, children, footer, wide }: { title: strin
     return () => window.removeEventListener('keydown', k);
   }, [onClose]);
   return (
-    <div className="absolute inset-0 z-50 flex items-end justify-center bg-[#14202b]/40 p-0 sm:items-center sm:p-6" onClick={onClose}>
-      <div role="dialog" aria-modal="true" aria-label={title} className={cx('max-h-[92%] w-full overflow-auto rounded-t-xl bg-white shadow-xl sm:rounded-xl', wide ? 'max-w-2xl' : 'max-w-md')} onClick={(e) => e.stopPropagation()}>
+    <div className="absolute inset-0 z-50 flex animate-fade items-end justify-center bg-[#14202b]/45 p-0 backdrop-blur-[2px] sm:items-center sm:p-6" onClick={onClose}>
+      <div role="dialog" aria-modal="true" aria-label={title} className={cx('max-h-[92%] w-full animate-sheet overflow-auto rounded-t-2xl bg-white shadow-pop sm:animate-pop sm:rounded-xl', wide ? 'max-w-2xl' : 'max-w-md')} onClick={(e) => e.stopPropagation()}>
         <header className="sticky top-0 z-10 flex items-center justify-between border-b border-line bg-white px-5 py-3">
           <h2 className="text-[15px] font-semibold text-ink">{title}</h2>
           <button className="rounded p-1 text-ink-3 hover:bg-paper" onClick={onClose} aria-label="Close"><X size={18} /></button>
@@ -191,7 +191,7 @@ export function Chip({ on, children, onClick }: { on?: boolean; children: ReactN
       type="button"
       onClick={onClick}
       aria-pressed={on}
-      className={cx('inline-flex h-8 shrink-0 items-center gap-1 whitespace-nowrap rounded-full border px-3 text-[12.5px] font-medium', on ? 'border-ink bg-ink text-white' : 'border-line-2 bg-white text-ink-2 hover:bg-paper')}
+      className={cx('inline-flex h-8 shrink-0 items-center gap-1 whitespace-nowrap rounded-full border px-3 text-[12.5px] font-medium transition-colors duration-150 active:scale-[0.97]', on ? 'border-ink bg-ink text-white' : 'border-line-2 bg-white text-ink-2 hover:bg-paper')}
     >
       {children}
     </button>
@@ -207,7 +207,7 @@ export function Tabs<T extends string>({ tabs, value, onChange }: { tabs: { id: 
           role="tab"
           aria-selected={value === t.id}
           onClick={() => onChange(t.id)}
-          className={cx('-mb-px whitespace-nowrap border-b-2 px-3 py-2 text-[13px]', value === t.id ? 'border-brand font-semibold text-ink' : 'border-transparent text-ink-3 hover:text-ink')}
+          className={cx('-mb-px whitespace-nowrap border-b-2 px-3 py-2 text-[13px] transition-colors duration-150', value === t.id ? 'border-brand font-semibold text-ink' : 'border-transparent text-ink-3 hover:text-ink')}
         >
           {t.label}
         </button>
@@ -215,3 +215,34 @@ export function Tabs<T extends string>({ tabs, value, onChange }: { tabs: { id: 
     </div>
   );
 }
+
+const prefersReducedMotion = () => typeof window !== 'undefined' && typeof window.matchMedia === 'function' && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+/** A number that counts up to its value (and eases to new values), unless the system asks for reduced motion. */
+export function CountUp({ value, ms = 650 }: { value: number; ms?: number }) {
+  const [shown, setShown] = useState(() => (prefersReducedMotion() ? value : 0));
+  const from = useRef(shown);
+  useEffect(() => {
+    if (prefersReducedMotion() || typeof requestAnimationFrame !== 'function') {
+      setShown(value);
+      return;
+    }
+    const start = performance.now();
+    const a = from.current;
+    let frame = 0;
+    const step = (now: number) => {
+      const t = Math.min(1, (now - start) / ms);
+      const eased = 1 - (1 - t) ** 3;
+      const v = Math.round(a + (value - a) * eased);
+      from.current = v;
+      setShown(v);
+      if (t < 1) frame = requestAnimationFrame(step);
+    };
+    frame = requestAnimationFrame(step);
+    return () => cancelAnimationFrame(frame);
+  }, [value, ms]);
+  return <span className="tabular-nums">{shown}</span>;
+}
+
+/** Style for one item of a `.stagger` list: it animates in a little after the item before it. */
+export const staggerAt = (i: number) => ({ ['--i' as string]: i }) as React.CSSProperties;

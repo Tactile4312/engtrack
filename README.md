@@ -70,7 +70,7 @@ After `npm run build`, copy `prototype/dist/index.html` to `design/client-share/
 
 ## Publish (GitHub Pages)
 
-https://tactile4312.github.io/engtrack/ serves `docs/` from the `main` branch. To update: `npm run build && npm run build:demo` in `prototype/`, copy `prototype/dist/index.html` to `docs/index.html` and `prototype/dist-demo/index.html` to `docs/demo/index.html`, commit and push. GitHub takes a minute or two to publish.
+https://tactile4312.github.io/engtrack/ serves `docs/` from the `main` branch. To update: `npm run build && npm run build:demo` in `prototype/` (live build with the real Supabase values in the environment), copy **everything** in `prototype/dist/` into `docs/` and everything in `prototype/dist-demo/` into `docs/demo/` (the page plus the app icons and `manifest.webmanifest` from `prototype/public/`), commit and push. GitHub takes a minute or two to publish.
 
 ## Adding a feature safely
 
@@ -123,6 +123,23 @@ On a project's **Tasks & milestones** tab, admins and project managers add, edit
 - Every add, edit and removal is logged in the activity history.
 
 Not built yet (from REQUIREMENTS.md section 12): task description, start date, priority, status, progress, dependencies and notes, and reminders for task due dates. Scopes already carry those fields, so tasks are kept as a simple checklist under each scope until the client asks for more.
+
+## Working on two devices
+
+Each saved record carries the time it was last written. The app remembers that time for everything it loaded or saved, and checks it before saving (`lib/versions.ts`, `saveDiff` in `lib/cloud.ts`). If another device or tab changed, removed or created the same record in the meantime, the save is held back and a banner offers **Reload** (take the other version; the change here is lost) or **Keep mine** (save over it). Records nobody else touched save as normal. When the tab comes back into view, the app also checks for changes saved elsewhere and offers a reload. No database change was needed: it uses the existing `updated_at` column. Settings (read reminders, backup date) are still last-write-wins.
+
+## Quick search and reminders
+
+- **Ctrl+K** (⌘K on a Mac), the search button in the desktop header, or **/** opens quick search: projects by number (even just the last digits), name, client or scope; clients; and every screen. Arrow keys and Enter, Escape to close. Matching lives in `lib/search.ts`.
+- Tasks with a due date now get reminders: the assignee 3 days and 1 day before, on the day and when overdue; the project manager only when overdue, or all of them if the task is unassigned. Opening a task reminder lands on the project's Tasks tab.
+
+## Installable app
+
+`prototype/public/` holds `manifest.webmanifest` and the icons (rendered from the logo). On a phone, the browser's **Add to Home Screen** gives an EngTrack icon that opens full screen; desktop Chrome and Edge offer **Install**. There is no service worker, so the app still needs a connection (on purpose: an offline copy could show stale data).
+
+## Motion
+
+One small set of animations is defined in `tailwind.config.js` (fade, rise, pop, sheet, drop, toast, grow, shimmer) with shared timing. Screens fade in; dialogs pop (slide up from the bottom on phones); dashboard tiles, project cards and table rows enter in sequence (`.stagger` plus `staggerAt(i)`); numbers count up (`CountUp`); progress bars fill; loading shows a shimmering outline of the app. Two rules: page-level animations only fade, because a transform would move the dialogs inside a page; and fill mode is `backwards`, so nothing stays layered after it finishes. Everything is switched off when the system asks for reduced motion (`styles.css`).
 
 ## Chart and UI notes
 

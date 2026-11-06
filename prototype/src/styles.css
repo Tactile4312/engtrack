@@ -22,9 +22,24 @@ input:focus-visible {
   outline: 2px solid #c72a6b;
   outline-offset: 2px;
 }
+/* Loading placeholders: a soft light sweeping across. */
+.skeleton {
+  background: linear-gradient(90deg, #f3e6ec 0px, #fbf3f7 120px, #f3e6ec 240px);
+  background-size: 800px 100%;
+  border-radius: 6px;
+}
+
+/* Lists that animate in: each item waits a little longer than the one before (set --i inline). */
+.stagger > * {
+  animation-delay: calc(min(var(--i, 0), 12) * 28ms);
+}
+
 @media (prefers-reduced-motion: reduce) {
-  * {
+  *,
+  *::before,
+  *::after {
     transition: none !important;
+    animation: none !important;
     scroll-behavior: auto !important;
   }
 }

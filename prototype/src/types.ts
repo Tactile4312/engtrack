@@ -153,9 +153,11 @@ export type ReminderStep = '7d' | '3d' | '1d' | 'today' | 'overdue';
 
 export interface Notice {
   key: string;
-  itemType: 'project' | 'scope';
+  itemType: 'project' | 'scope' | 'task';
   projectId: string;
   scopeId?: string;
+  /** Set for task reminders. */
+  taskId?: string;
   step: ReminderStep;
   recipientId: string;
   trigger: ISODate;

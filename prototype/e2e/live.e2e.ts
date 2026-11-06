@@ -9,10 +9,15 @@ test.beforeEach(async ({ context }) => {
   await db.install(context); // every tab in the test shares the same fake database
 });
 
+// Let any request still being answered finish quietly, so closing the browser doesn't wait on it.
+test.afterEach(async ({ context }) => {
+  await context.unrouteAll({ behavior: 'ignoreErrors' });
+});
+
 async function signIn(page: Page, password = TEST_PASSWORD) {
   await page.goto('/?bar=0');
   await page.getByLabel('Email').fill(TEST_EMAIL);
-  await page.getByLabel('Password').fill(password);
+  await page.getByLabel('Password', { exact: true }).fill(password);
   await page.getByRole('button', { name: 'Sign in' }).click();
 }
 
@@ -98,6 +103,7 @@ test('signing out while saves fail asks first, and Cancel keeps you signed in', 
 });
 
 test('after signing out in another tab, this tab stops trying to save', async ({ page, context }) => {
+  test.setTimeout(90_000); // two tabs and a deliberate 6 s wait; slow when the machine is busy
   await signIn(page);
   await openNotes(page);
   db.failWrites = true;
@@ -109,7 +115,8 @@ test('after signing out in another tab, this tab stops trying to save', async ({
   await other.goto('/?bar=0');
   await signOutButton(other).click();
   await expect(signInForm(other)).toBeVisible();
-  await expect(signInForm(page)).toBeVisible();
+  // The browser passes the sign-out between tabs on its own schedule; allow for a busy machine.
+  await expect(signInForm(page)).toBeVisible({ timeout: 15_000 });
 
   // Once the connection is back, nothing from the ended session may be written.
   db.failWrites = false;

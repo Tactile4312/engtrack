@@ -4,7 +4,7 @@ import { useApp } from '../store/AppStore';
 import { PageHead } from '../components/Shell';
 import { Button, Card, Chip, cx } from '../components/ui';
 import { addDays, addMonths, dayName, fmt, monthLabel, parseISO, startOfMonth, startOfWeek } from '../lib/dates';
-import { isClosed, STEP_LABEL } from '../lib/rules';
+import { isClosed, noticeSubject, STEP_LABEL } from '../lib/rules';
 import { useInbox } from '../lib/hooks';
 import type { Project, Scope } from '../types';
 
@@ -126,7 +126,7 @@ export function Calendar() {
             {items.slice(0, 5).map((n) => (
               <button key={n.key} onClick={() => go({ page: 'notifications' })} className="flex w-full items-start gap-2 border-b border-line py-2 text-left last:border-0">
                 <span className={cx('mt-1.5 h-2 w-2 shrink-0 rounded-full', n.read ? 'border border-line-2' : 'bg-brand')} aria-label={n.read ? 'Read' : 'Unread'} />
-                <span className="min-w-0 text-[12.5px]"><b className={cx('font-semibold', n.step === 'overdue' ? 'text-crit-700' : 'text-ink')}>{STEP_LABEL[n.step]}</b> · <span className="text-ink">{n.scopeId ? n.project.scopes.find((s) => s.id === n.scopeId)?.type : n.project.name}</span><span className="block text-[11.5px] text-ink-3">{n.project.number} · {fmt(n.trigger)}</span></span>
+                <span className="min-w-0 text-[12.5px]"><b className={cx('font-semibold', n.step === 'overdue' ? 'text-crit-700' : 'text-ink')}>{STEP_LABEL[n.step]}</b> · <span className="text-ink">{noticeSubject(n, n.project).name}</span><span className="block text-[11.5px] text-ink-3">{n.project.number} · {fmt(n.trigger)}</span></span>
               </button>
             ))}
             {items.length === 0 && <p className="py-3 text-[12.5px] text-ink-3">No reminders for you.</p>}
@@ -135,7 +135,7 @@ export function Calendar() {
             {upcoming.slice(0, 6).map((n) => (
               <div key={n.key} className="flex gap-2 border-b border-line py-1.5 text-[12.5px] last:border-0">
                 <span className="w-[46px] shrink-0 font-mono text-[11.5px] text-ink">{fmt(n.trigger)}</span>
-                <span className="min-w-0 text-ink-2">{STEP_LABEL[n.step]} · {n.scopeId ? n.project.scopes.find((s) => s.id === n.scopeId)?.type : 'Project'} <span className="text-ink-3">({n.project.number.slice(-4)})</span></span>
+                <span className="min-w-0 text-ink-2">{STEP_LABEL[n.step]} · {noticeSubject(n, n.project).name} <span className="text-ink-3">({n.project.number.slice(-4)})</span></span>
               </div>
             ))}
             {upcoming.length === 0 && <p className="py-3 text-[12.5px] text-ink-3">Nothing scheduled for you.</p>}

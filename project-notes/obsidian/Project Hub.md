@@ -2,7 +2,7 @@
 type: project
 status: active
 created: 2026-10-19
-updated: 2026-10-31
+updated: 2026-11-07
 tags:
   - project/engineering-crm
 summary: Engineering Project Management CRM & Tracker for an engineering company - projects with multiple engineering scopes, assignments, deadline reminders, Gantt/calendar, dashboards, reports, plus desktop/mobile wireframes and a clickable client prototype.
@@ -20,7 +20,7 @@ source: Spec pasted into Claude Code 2026-10-19, saved as REQUIREMENTS.md in the
 | Where the work happens | Claude Code, folder `[local project path]` |
 | GitHub | https://github.com/Tactile4312/engtrack (public, branch `main`, pushed 2026-10-20). `node_modules` and `prototype/dist` are not committed. Live prototype: https://tactile4312.github.io/engtrack/ (GitHub Pages from `docs/`) |
 | Spec | `REQUIREMENTS.md` in that folder (authoritative; confirmed decisions table at the top). Read-only copy: [[Requirements (copy)]]. Wireframes PDF: [[Engineering CRM - Wireframes v0.1.pdf]] |
-| Status (as of 2026-10-31) | v0.3.2 single-user app live on GitHub Pages (`923b276`, author cheesuskrays), using Supabase project `mdvhgdaigbtqrafmuajc`. Adds backups, crash screens, more tests and a GitHub check. Tested on a separate test project; signed-in use against real data **not yet checked** → [[Sessions/2026-10-31 - Backups, hardening and safer structure]]. Supabase URL + publishable key are not in source files, only in local env files and the built page |
+| Status (as of 2026-11-07) | The client left; EngTrack is now the owner's own app. Live on GitHub Pages with safer saving (sign-out and two-device protection), task and milestone editing, task reminders, quick search, installable app, and a design and motion pass. Former client records may still be in the real Supabase project (not deleted). GitHub Actions blocked by a billing lock; checks run locally → [[Sessions/2026-11-07 - Own app, safer saving, tasks, search and motion]] |
 | Constraint | Free/open-source wherever possible; no mandatory paid APIs or subscriptions. Document any hosting limits or costs |
 | Constraint | Wireframes (low-fi, then polished) and a clickable prototype before the full build, so the client can review first |
 
@@ -59,6 +59,9 @@ source: Spec pasted into Claude Code 2026-10-19, saved as REQUIREMENTS.md in the
 - [ ] Change/delete the test user test credentials were discussed privately
 - [ ] Confirm at the demo: should the Create form show the next free project number as a hint? (assumption built into v0.1)
 - [ ] Optional: PowerPoint deck from `design/polished-mockups/`
+- [x] Own app: safer saving, tasks and milestones, reminders, quick search, installable, motion (2026-11-07)
+- [ ] Fix the GitHub billing lock so CI runs again
+- [ ] Decide what to do with the former client's records (back up first)
 
 ## What to Load
 
@@ -79,6 +82,7 @@ Follows the vault rule [[CLAUDE#Hard Rules|no secrets in notes]]. Here: secrets 
 
 ## Related
 
+- [[Sessions/2026-11-07 - Own app, safer saving, tasks, search and motion]]
 - [[Sessions/2026-10-31 - Backups, hardening and safer structure]]
 - [[Sessions/2026-10-21 - Single-user live version v0.3]]
 - [[Decisions/Single-user trial on Supabase]]

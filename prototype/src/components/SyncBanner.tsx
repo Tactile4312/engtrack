@@ -12,7 +12,7 @@ export function SyncBanner({ problem, onReload, onKeepMine, onDismiss }: { probl
   const conflict = problem.kind === 'conflict';
   return (
     <div className="pointer-events-none fixed inset-x-0 top-3 z-[70] flex justify-center px-3">
-      <div role="alert" className={`pointer-events-auto grid w-full max-w-[560px] gap-3 rounded-xl border-2 bg-white p-4 shadow-xl ${conflict ? 'border-crit' : 'border-brand'}`}>
+      <div role="alert" className={`pointer-events-auto grid w-full max-w-[560px] animate-drop gap-3 rounded-xl border-2 bg-white p-4 shadow-pop ${conflict ? 'border-crit' : 'border-brand'}`}>
         <div className="flex gap-3">
           {conflict ? <AlertTriangle size={20} className="mt-0.5 shrink-0 text-crit" aria-hidden /> : <RefreshCw size={20} className="mt-0.5 shrink-0 text-brand" aria-hidden />}
           <div className="grid gap-1 text-[13.5px] text-ink-2">
