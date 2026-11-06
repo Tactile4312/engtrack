@@ -126,7 +126,7 @@ export function Button({ kind = 'secondary', children, className, ...rest }: Rea
 
 export function Field({ label, required, error, hint, children, htmlFor }: { label: string; required?: boolean; error?: string; hint?: ReactNode; children: ReactNode; htmlFor?: string }) {
   return (
-    <div className="grid min-w-0 gap-1">
+    <div className="grid min-w-0 content-start gap-1">
       <label htmlFor={htmlFor} className="text-[12.5px] font-medium text-ink">
         {label}
         {required && <span className="text-crit"> *</span>}

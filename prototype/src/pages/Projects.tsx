@@ -180,7 +180,7 @@ export function ProjectCard({ p, client }: { p: Project; client: string }) {
         <DueFlag due={p.due} status={p.status} today={today} />
       </span>
       <span className="text-[15px] font-semibold leading-snug text-ink">{p.name}</span>
-      <span className="flex flex-wrap items-center gap-1.5 text-[12.5px] text-ink-2">{client} · <ScopeTags types={p.scopes.map((x) => x.type)} max={2} /></span>
+      <span className="flex flex-wrap items-center gap-1.5 text-[12.5px] text-ink-2"><span className="mr-1">{client}</span><ScopeTags types={p.scopes.map((x) => x.type)} max={2} /></span>
       <span className="flex items-center justify-between gap-2 text-[12.5px]">
         <span className="text-ink-2">Due <b className="font-semibold text-ink">{fmt(p.due)}</b></span>
         <StatusBadge status={p.status} short />

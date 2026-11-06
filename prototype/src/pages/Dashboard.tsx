@@ -12,7 +12,7 @@ export function DeadlineRow({ d, onOpen }: { d: Deadline; onOpen: () => void; co
   const { today } = useApp();
   return (
     <button onClick={onOpen} className="flex w-full min-w-0 items-center gap-3 border-b border-line py-2 text-left last:border-0 hover:bg-paper">
-      <span className={cx('w-[46px] shrink-0 font-mono text-[11.5px]', d.due === today ? 'font-semibold text-crit-700' : 'text-ink')}>{d.due === today ? 'Today' : fmt(d.due)}</span>
+      <span className={cx('w-[46px] shrink-0 text-[12px] tabular-nums', d.due === today ? 'font-semibold text-crit-700' : 'text-ink')}>{d.due === today ? 'Today' : fmt(d.due)}</span>
       <span className={cx('shrink-0 rounded px-1.5 py-[1px] text-[10.5px] font-semibold uppercase tracking-wide', d.kind === 'project' ? 'bg-ink text-white' : 'border border-line-2 text-ink-2')}>
         {d.kind === 'project' ? 'Project' : 'Scope'}
       </span>

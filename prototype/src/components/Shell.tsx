@@ -148,7 +148,7 @@ export function DesktopShell({ children }: { children: ReactNode }) {
         {LIVE ? (
           <button onClick={() => void signOut?.()} className="flex items-center gap-3 rounded-md px-3 py-2 text-left text-rail-3 hover:bg-rail-2/60 hover:text-white"><LogOut size={17} aria-hidden />Sign out</button>
         ) : (
-          <p className="px-3 text-[11px] leading-snug text-rail-3">Prototype v0.2<br />Sample records only</p>
+          <p className="px-3 text-[11px] leading-snug text-rail-3">Demo version<br />Sample records only</p>
         )}
       </aside>
       <div className="flex min-w-0 flex-1 flex-col">
