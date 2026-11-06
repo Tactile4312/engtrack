@@ -45,7 +45,8 @@ export function canSee(user: User, p: Project, clients: Client[]): boolean {
   }
 }
 
-export type Action = 'create' | 'edit' | 'archive' | 'delete' | 'status' | 'updateScope' | 'note' | 'settings' | 'addClient';
+/** 'plan': add, edit and remove a project's tasks and milestones (ticking them off is separate). */
+export type Action = 'create' | 'edit' | 'archive' | 'delete' | 'status' | 'updateScope' | 'note' | 'settings' | 'addClient' | 'plan';
 
 export function can(user: User, action: Action, p?: Project, scope?: Scope): boolean {
   const r = user.role;
@@ -58,6 +59,7 @@ export function can(user: User, action: Action, p?: Project, scope?: Scope): boo
     case 'edit':
     case 'status':
     case 'archive':
+    case 'plan':
       return r === 'Project Manager';
     case 'delete':
     case 'settings':

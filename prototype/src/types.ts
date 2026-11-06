@@ -73,6 +73,8 @@ export interface Task {
   assigneeId: string | null;
   due: ISODate | null;
   done: boolean;
+  /** Set when the task is ticked done, cleared when it is reopened. */
+  completed: ISODate | null;
 }
 
 export interface Milestone {

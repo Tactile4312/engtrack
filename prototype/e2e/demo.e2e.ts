@@ -71,3 +71,77 @@ test('a note added to a project appears straight away', async ({ page }) => {
   await expect(page.getByText('Crane mats delivered to site')).toBeVisible();
   await expect(page.getByRole('tab', { name: 'Notes (1)' })).toBeVisible();
 });
+
+test.describe('tasks and milestones', () => {
+  const PROJECT = '/?bar=0&screen=project&id=CRM-2026-0142';
+  const dialog = (page: Page) => page.getByRole('dialog');
+
+  test('a project manager adds, edits, ticks off and removes a task', async ({ page }) => {
+    const problems = await watch(page);
+    await page.goto(PROJECT);
+    await page.getByRole('button', { name: 'Add task' }).click();
+
+    await page.locator('#plan-save').click();
+    await expect(dialog(page).getByText('Enter what needs doing.')).toBeVisible();
+
+    await page.locator('#task-name').fill('Check rigging certificates');
+    await page.locator('#task-scope').selectOption({ label: 'Lifting' });
+    // Choosing the scope suggests its engineer.
+    await expect(page.locator('#task-assignee')).not.toHaveValue('');
+    await page.locator('#plan-save').click();
+    await expect(dialog(page)).toHaveCount(0);
+    await expect(page.getByText('Check rigging certificates')).toBeVisible();
+
+    await page.getByRole('button', { name: 'Edit task: Check rigging certificates' }).click();
+    await page.locator('#task-name').fill('Check rigging and shackle certificates');
+    await page.locator('#plan-save').click();
+    await expect(page.getByText('Check rigging and shackle certificates')).toBeVisible();
+
+    await page.getByRole('checkbox', { name: 'Check rigging and shackle certificates' }).check();
+    await expect(page.getByText(/done \d{2} \w{3}/).last()).toBeVisible();
+
+    await page.getByRole('button', { name: 'Edit task: Check rigging and shackle certificates' }).click();
+    await page.locator('#plan-remove').click();
+    await page.locator('#plan-remove-confirm').click();
+    await expect(page.getByText('Check rigging and shackle certificates')).toHaveCount(0);
+
+    await page.getByRole('tab', { name: 'Activity history' }).click();
+    await expect(page.getByText(/Task removed · Check rigging and shackle certificates/)).toBeVisible();
+    expect(problems).toEqual([]);
+  });
+
+  test('a project manager adds a milestone, and a duplicate name is refused', async ({ page }) => {
+    await watch(page);
+    await page.goto(PROJECT);
+    await page.getByRole('button', { name: 'Add milestone' }).click();
+    await page.locator('#ms-name').fill('client approval');
+    await page.locator('#plan-save').click();
+    await expect(dialog(page).getByText(/already a milestone on this project/)).toBeVisible();
+
+    await page.locator('#ms-name').fill('Method statement approved');
+    await page.locator('#plan-save').click();
+    await expect(page.getByRole('button', { name: 'Edit milestone: Method statement approved' })).toBeVisible();
+  });
+
+  test('an engineer can tick tasks off but not add, edit or remove them', async ({ page }) => {
+    await watch(page);
+    await page.goto(`${PROJECT}&user=u-e1`);
+    await expect(page.getByRole('tab', { name: 'Tasks & milestones' })).toBeVisible();
+    await expect(page.getByRole('button', { name: 'Add task' })).toHaveCount(0);
+    await expect(page.getByRole('button', { name: /^Edit task/ })).toHaveCount(0);
+    await expect(page.getByRole('button', { name: 'Add milestone' })).toHaveCount(0);
+    await expect(page.getByRole('checkbox', { name: 'Ground bearing check against GBP data' })).toBeEnabled();
+  });
+});
+
+test('removing a scope from a project moves its tasks to the whole project', async ({ page, isMobile }) => {
+  test.skip(isMobile, 'same form on both sizes; checked once at desktop size');
+  await watch(page);
+  await page.goto('/?bar=0&screen=project&id=CRM-2026-0142');
+  await expect(page.getByText('Draft method statement')).toBeVisible();
+  await page.getByRole('button', { name: 'Edit project' }).click();
+  await page.getByRole('button', { name: 'MS Study', exact: true }).click(); // untick the scope
+  await page.getByRole('button', { name: 'Save changes' }).click();
+  const row = page.locator('div', { has: page.getByRole('checkbox', { name: 'Draft method statement' }) }).last();
+  await expect(row.getByText(/^Whole project/)).toBeVisible();
+});

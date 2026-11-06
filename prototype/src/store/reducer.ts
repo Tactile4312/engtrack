@@ -14,6 +14,12 @@ function touch(p: Project, userId: string, action: string, from?: string, to?: s
   return { ...p, updatedAt: at, updatedBy: userId, activity: [{ id: uid(), at, userId, action, from, to }, ...p.activity] };
 }
 
+/** Dated milestones first, earliest first; undated ones keep their order after them. */
+function byDateThenUndated(a: { date: string | null }, b: { date: string | null }) {
+  if (a.date && b.date) return a.date.localeCompare(b.date);
+  return a.date ? -1 : b.date ? 1 : 0;
+}
+
 function mapProject(s: State, id: string, f: (p: Project) => Project): Project[] {
   return s.projects.map((p) => (p.id === id ? f(p) : p));
 }
@@ -71,6 +77,7 @@ export function reducer(s: State, m: Msg): State {
         salesId: kept.has(p.salesId) ? p.salesId : '',
         pmId: kept.has(p.pmId) ? p.pmId : '',
         scopes: p.scopes.map((x) => (x.engineerId && !kept.has(x.engineerId) ? { ...x, engineerId: null } : x)),
+        tasks: p.tasks.map((t) => (t.assigneeId && !kept.has(t.assigneeId) ? { ...t, assigneeId: null } : t)),
       }));
       return { ...s, projects, clients, people, demo: undefined, route: { page: 'dashboard' }, history: [], toast: 'Sample data removed' };
     }
@@ -123,9 +130,55 @@ export function reducer(s: State, m: Msg): State {
         projects: mapProject(s, m.projectId, (p) => {
           const t = p.tasks.find((x) => x.id === m.taskId);
           if (!t) return p;
-          const next = { ...p, tasks: p.tasks.map((x) => (x.id === m.taskId ? { ...x, done: !x.done } : x)) };
+          const next = { ...p, tasks: p.tasks.map((x) => (x.id === m.taskId ? { ...x, done: !x.done, completed: x.done ? null : todayISO() } : x)) };
           return touch(next, me, t.done ? `Task reopened · ${t.name}` : `Task completed · ${t.name}`);
         }),
+      };
+    case 'saveTask':
+      return {
+        ...s,
+        projects: mapProject(s, m.projectId, (p) => {
+          const old = p.tasks.find((x) => x.id === m.task.id);
+          if (!m.isNew && !old) return p;
+          const tasks = old ? p.tasks.map((x) => (x.id === m.task.id ? m.task : x)) : [...p.tasks, m.task];
+          return touch({ ...p, tasks }, me, m.isNew ? `Task added · ${m.task.name}` : `Task edited · ${m.task.name}`);
+        }),
+        toast: m.isNew ? 'Task added' : 'Task saved',
+      };
+    case 'removeTask':
+      return {
+        ...s,
+        projects: mapProject(s, m.projectId, (p) => {
+          const t = p.tasks.find((x) => x.id === m.taskId);
+          return t ? touch({ ...p, tasks: p.tasks.filter((x) => x.id !== t.id) }, me, `Task removed · ${t.name}`) : p;
+        }),
+        toast: 'Task removed',
+      };
+    case 'saveMilestone':
+      return {
+        ...s,
+        projects: mapProject(s, m.projectId, (p) => {
+          const old = p.milestones.find((x) => x.id === m.milestone.id);
+          if (!m.isNew && !old) return p;
+          const list = old ? p.milestones.map((x) => (x.id === m.milestone.id ? m.milestone : x)) : [...p.milestones, m.milestone];
+          // Keep milestones in date order; undated ones stay in place after the dated ones.
+          const milestones = [...list].sort(byDateThenUndated);
+          const action = m.isNew ? `Milestone added · ${m.milestone.name}` : `Milestone edited · ${m.milestone.name}`;
+          const moved = old && old.date !== m.milestone.date;
+          return moved
+            ? touch({ ...p, milestones }, me, action, old.date ?? '—', m.milestone.date ?? '—')
+            : touch({ ...p, milestones }, me, action);
+        }),
+        toast: m.isNew ? 'Milestone added' : 'Milestone saved',
+      };
+    case 'removeMilestone':
+      return {
+        ...s,
+        projects: mapProject(s, m.projectId, (p) => {
+          const ms = p.milestones.find((x) => x.id === m.milestoneId);
+          return ms ? touch({ ...p, milestones: p.milestones.filter((x) => x.id !== ms.id) }, me, `Milestone removed · ${ms.name}`) : p;
+        }),
+        toast: 'Milestone removed',
       };
     case 'milestone':
       return {

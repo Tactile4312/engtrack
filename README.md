@@ -113,6 +113,17 @@ The live app stores real data on a free Supabase project. This setup has no auto
 
 The file contains client and project data, so don't commit it to this public repo.
 
+## Tasks and milestones
+
+On a project's **Tasks & milestones** tab, admins and project managers add, edit and remove tasks and milestones (`can(user, 'plan')`). Engineers can tick tasks and milestones off but not change them; salespeople only view.
+
+- A task has a name, belongs to one scope or the whole project, and has an optional assignee and due date (not after the project due date). Ticking it records today as its completion date; reopening clears it.
+- Milestones need a name unique on the project and are kept in date order, undated ones last. New projects still start with the default seven.
+- Removing a scope moves its tasks to the whole project. Removing sample data un-assigns sample people from tasks too.
+- Every add, edit and removal is logged in the activity history.
+
+Not built yet (from REQUIREMENTS.md section 12): task description, start date, priority, status, progress, dependencies and notes, and reminders for task due dates. Scopes already carry those fields, so tasks are kept as a simple checklist under each scope until the client asks for more.
+
 ## Chart and UI notes
 
 - Charts use the brand pink, or pink plus orange-red for on-time/late. Re-checked 2026-11-06 after the pink theme: the pair stays distinct for the common red-green colour blindness types, but not for the rare blue-yellow type (tritanopia); a darker plum for "on time" would fix that. Text never uses series colours; status badges carry an icon and a label.

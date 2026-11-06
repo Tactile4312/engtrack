@@ -117,3 +117,17 @@ test('after signing out in another tab, this tab stops trying to save', async ({
   await page.waitForTimeout(6000); // longer than the 5 s retry delay
   expect(db.calls.slice(before).filter((c) => c.target.startsWith('rest:') && c.method !== 'GET')).toEqual([]);
 });
+
+test('a task added to a project is saved and is still there after a reload', async ({ page }) => {
+  await signIn(page);
+  await expect(page.getByRole('heading', { name: 'Dashboard' })).toBeVisible();
+  await page.goto('/?bar=0&screen=project&id=CRM-2026-0142');
+  await page.getByRole('button', { name: 'Add task' }).click();
+  await page.locator('#task-name').fill('Book the 750 t crawler crane');
+  await page.locator('#plan-save').click();
+
+  await expect.poll(() => db.savesContaining('projects', 'Book the 750 t crawler crane').length).toBeGreaterThan(0);
+  await expect(page.getByText('Saved', { exact: true })).toBeVisible();
+  await page.reload();
+  await expect(page.getByText('Book the 750 t crawler crane')).toBeVisible();
+});

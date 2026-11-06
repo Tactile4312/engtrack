@@ -74,3 +74,43 @@ export function validateClient(d: ClientDraft, clients: Client[], editingId?: st
   if (!d.salesId) e.salesId = 'Choose the salesperson who handles this client.';
   return e;
 }
+
+/* ---------- Tasks and milestones (per project) ---------- */
+
+/** Longest task or milestone name accepted, so a pasted paragraph can't break the layout. */
+export const PLAN_NAME_MAX = 120;
+
+export interface TaskDraft {
+  name: string;
+  /** '' means the task belongs to the whole project. */
+  scopeId: string;
+  assigneeId: string;
+  due: ISODate;
+}
+
+export function validateTask(d: TaskDraft, p: Project): Errors {
+  const e: Errors = {};
+  const name = d.name.trim();
+  if (!name) e.name = 'Enter what needs doing.';
+  else if (name.length > PLAN_NAME_MAX) e.name = `Keep it under ${PLAN_NAME_MAX} characters; put details in a note.`;
+  if (d.scopeId && !p.scopes.some((s) => s.id === d.scopeId)) e.scopeId = 'That scope is no longer on this project. Choose another.';
+  if (d.due && p.due && d.due > p.due) e.due = 'The due date is after the project due date.';
+  return e;
+}
+
+export interface MilestoneDraft {
+  name: string;
+  date: ISODate;
+}
+
+export function validateMilestone(d: MilestoneDraft, p: Project, editingId?: string): Errors {
+  const e: Errors = {};
+  const name = d.name.trim();
+  if (!name) e.name = 'Enter a milestone name.';
+  else if (name.length > PLAN_NAME_MAX) e.name = `Keep it under ${PLAN_NAME_MAX} characters.`;
+  else {
+    const clash = p.milestones.find((m) => m.id !== editingId && squash(m.name) === squash(name));
+    if (clash) e.name = `“${clash.name}” is already a milestone on this project.`;
+  }
+  return e;
+}

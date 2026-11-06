@@ -1,5 +1,5 @@
 // App state: its shape, the messages that change it, and how it starts.
-import type { Client, Project, Scope, Status, User } from '../types';
+import type { Client, Milestone, Project, Scope, Status, Task, User } from '../types';
 import { buildSeed, USERS } from '../mock-data/seed';
 import { ME_ID, type Settings, type Snapshot } from '../lib/cloud';
 import type { Backup } from '../lib/backup';
@@ -66,6 +66,10 @@ export type Msg =
   | { t: 'delete'; projectId: string }
   | { t: 'task'; projectId: string; taskId: string }
   | { t: 'milestone'; projectId: string; milestoneId: string }
+  | { t: 'saveTask'; projectId: string; task: Task; isNew: boolean }
+  | { t: 'removeTask'; projectId: string; taskId: string }
+  | { t: 'saveMilestone'; projectId: string; milestone: Milestone; isNew: boolean }
+  | { t: 'removeMilestone'; projectId: string; milestoneId: string }
   | { t: 'note'; projectId: string; text: string }
   | { t: 'read'; keys: string[] }
   | { t: 'toast'; text: string | null }

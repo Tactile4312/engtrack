@@ -1,11 +1,12 @@
 import { useState } from 'react';
-import { Archive, ArchiveRestore, CheckCircle2, ChevronDown, Copy, Diamond, Paperclip, Pencil, Trash2 } from 'lucide-react';
+import { Archive, ArchiveRestore, CheckCircle2, ChevronDown, Copy, Diamond, Paperclip, Pencil, Plus, Trash2 } from 'lucide-react';
+import { MilestoneModal, TaskModal } from '../components/PlanModals';
 import { shortName, useApp, userName } from '../store/AppStore';
 import { Avatar, Button, Card, DueFlag, Empty, Field, Modal, PriorityTag, Progress, StatusBadge, Tabs, cx, inputCls } from '../components/ui';
 import { can, isClosed, projectEngineers, projectProgress } from '../lib/rules';
 import { diffDays, fmt, relTime, showVal } from '../lib/dates';
 import { LIVE } from '../lib/cloud';
-import { STATUSES, type Project, type Scope, type Status } from '../types';
+import { STATUSES, type Milestone, type Project, type Scope, type Status, type Task } from '../types';
 
 type Tab = 'tasks' | 'notes' | 'files' | 'activity';
 
@@ -259,34 +260,66 @@ function MiniTimeline({ p }: { p: Project }) {
   );
 }
 
+type PlanEdit = { kind: 'task'; task?: Task } | { kind: 'milestone'; milestone?: Milestone } | null;
+
+function PlanHeading({ title, addLabel, onAdd }: { title: string; addLabel: string; onAdd?: () => void }) {
+  return (
+    <div className="mb-1 flex min-h-[32px] items-center justify-between">
+      <h4 className="text-[12px] font-semibold uppercase tracking-wider text-ink-3">{title}</h4>
+      {onAdd && <Button kind="ghost" className="h-8 px-2 text-[12.5px]" onClick={onAdd}><Plus size={14} />{addLabel}</Button>}
+    </div>
+  );
+}
+
+function EditButton({ label, onClick }: { label: string; onClick: () => void }) {
+  return (
+    <button type="button" onClick={onClick} aria-label={label} title={label} className="grid h-8 w-8 shrink-0 place-items-center rounded-md text-ink-3 hover:bg-paper hover:text-ink">
+      <Pencil size={14} aria-hidden />
+    </button>
+  );
+}
+
 function TasksMilestones({ p }: { p: Project }) {
   const { dispatch, me } = useApp();
   const canTick = me.role !== 'Salesperson';
+  const canPlan = can(me, 'plan', p);
+  const [edit, setEdit] = useState<PlanEdit>(null);
   return (
     <div className="grid gap-5 lg:grid-cols-2">
       <div>
-        <h4 className="mb-1 text-[12px] font-semibold uppercase tracking-wider text-ink-3">Tasks</h4>
+        <PlanHeading title="Tasks" addLabel="Add task" onAdd={canPlan ? () => setEdit({ kind: 'task' }) : undefined} />
         {p.tasks.length === 0 && <p className="py-3 text-[13px] text-ink-3">No tasks yet.</p>}
         {p.tasks.map((t) => (
-          <label key={t.id} className="flex cursor-pointer items-start gap-2.5 border-b border-line py-2 last:border-0">
-            <input type="checkbox" id={`task-${t.id}`} checked={t.done} disabled={!canTick} onChange={() => dispatch({ t: 'task', projectId: p.id, taskId: t.id })} className="mt-0.5 h-4 w-4 accent-[#c72a6b]" />
-            <span className="min-w-0 flex-1 text-[13px]">
-              <span className={cx('block', t.done ? 'text-ink-3 line-through' : 'text-ink')}>{t.name}</span>
-              <span className="block text-[11.5px] text-ink-3">{t.scopeId ? p.scopes.find((s) => s.id === t.scopeId)?.type : 'Project'} · {shortName(t.assigneeId)} · due {fmt(t.due)}</span>
-            </span>
-          </label>
+          <div key={t.id} className="flex items-start gap-1 border-b border-line py-2 last:border-0">
+            <label className="flex min-w-0 flex-1 cursor-pointer items-start gap-2.5">
+              <input type="checkbox" id={`task-${t.id}`} checked={t.done} disabled={!canTick} onChange={() => dispatch({ t: 'task', projectId: p.id, taskId: t.id })} className="mt-0.5 h-4 w-4 accent-[#c72a6b]" />
+              <span className="min-w-0 flex-1 text-[13px]">
+                <span className={cx('block', t.done ? 'text-ink-3 line-through' : 'text-ink')}>{t.name}</span>
+                <span className="block text-[11.5px] text-ink-3">
+                  {t.scopeId ? p.scopes.find((s) => s.id === t.scopeId)?.type ?? 'Removed scope' : 'Whole project'} · {shortName(t.assigneeId)} · {t.done && t.completed ? `done ${fmt(t.completed)}` : `due ${fmt(t.due)}`}
+                </span>
+              </span>
+            </label>
+            {canPlan && <EditButton label={`Edit task: ${t.name}`} onClick={() => setEdit({ kind: 'task', task: t })} />}
+          </div>
         ))}
       </div>
       <div>
-        <h4 className="mb-1 text-[12px] font-semibold uppercase tracking-wider text-ink-3">Milestones</h4>
+        <PlanHeading title="Milestones" addLabel="Add milestone" onAdd={canPlan ? () => setEdit({ kind: 'milestone' }) : undefined} />
+        {p.milestones.length === 0 && <p className="py-3 text-[13px] text-ink-3">No milestones yet.</p>}
         {p.milestones.map((m) => (
-          <button key={m.id} disabled={!canTick} onClick={() => dispatch({ t: 'milestone', projectId: p.id, milestoneId: m.id })} className="flex w-full items-center gap-2.5 border-b border-line py-2 text-left last:border-0 enabled:hover:bg-paper">
-            {m.done ? <CheckCircle2 size={16} className="shrink-0 text-good" aria-label="Reached" /> : <Diamond size={14} className="shrink-0 text-[#4a3aa7]" aria-label="Planned" />}
-            <span className={cx('flex-1 text-[13px]', m.done ? 'text-ink-2' : 'font-medium text-ink')}>{m.name}</span>
-            <span className="text-[12px] text-ink-3">{fmt(m.date)}</span>
-          </button>
+          <div key={m.id} className="flex items-center gap-1 border-b border-line last:border-0">
+            <button disabled={!canTick} aria-pressed={m.done} onClick={() => dispatch({ t: 'milestone', projectId: p.id, milestoneId: m.id })} className="flex min-w-0 flex-1 items-center gap-2.5 py-2 text-left enabled:hover:bg-paper">
+              {m.done ? <CheckCircle2 size={16} className="shrink-0 text-good" aria-label="Reached" /> : <Diamond size={14} className="shrink-0 text-[#4a3aa7]" aria-label="Planned" />}
+              <span className={cx('flex-1 text-[13px]', m.done ? 'text-ink-2' : 'font-medium text-ink')}>{m.name}</span>
+              <span className="text-[12px] text-ink-3">{fmt(m.date)}</span>
+            </button>
+            {canPlan && <EditButton label={`Edit milestone: ${m.name}`} onClick={() => setEdit({ kind: 'milestone', milestone: m })} />}
+          </div>
         ))}
       </div>
+      {edit?.kind === 'task' && <TaskModal p={p} task={edit.task} onClose={() => setEdit(null)} />}
+      {edit?.kind === 'milestone' && <MilestoneModal p={p} milestone={edit.milestone} onClose={() => setEdit(null)} />}
     </div>
   );
 }

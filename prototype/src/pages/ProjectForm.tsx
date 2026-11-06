@@ -87,6 +87,8 @@ export function ProjectForm({ editId, copyFrom }: { editId?: string; copyFrom?: 
         ...editing, number, name: d.name.trim(), clientId: d.clientId, description: d.description, requested: d.requested, start: d.start || null, due: d.due,
         plannedFinish: editing.plannedFinish && editing.plannedFinish <= d.due ? editing.plannedFinish : d.due, priority: d.priority, status: d.status,
         salesId: d.salesId, pmId: d.pmId, scopes, updatedAt: at, updatedBy: me.id,
+        // Tasks under a scope that was just removed now belong to the whole project.
+        tasks: editing.tasks.map((t) => (t.scopeId && !scopes.some((x) => x.id === t.scopeId) ? { ...t, scopeId: null } : t)),
         activity: [...changes.map((c) => ({ id: uid(), at, userId: me.id, ...c })), ...editing.activity],
       };
     } else {

@@ -1,7 +1,8 @@
 import { describe, expect, it } from 'vitest';
 import { reducer } from './reducer';
 import { initial, type Msg, type State } from './state';
-import type { Project } from '../types';
+import type { Project, Task } from '../types';
+import { todayISO } from '../lib/dates';
 
 function deepFreeze<T>(v: T): T {
   if (v && typeof v === 'object') {
@@ -29,6 +30,12 @@ describe('reducer', () => {
       { t: 'status', projectId: p.id, status: 'Completed' }, { t: 'archive', projectId: p.id, archived: true }, { t: 'delete', projectId: p.id },
       { t: 'task', projectId: p.id, taskId: p.tasks[0].id }, { t: 'milestone', projectId: p.id, milestoneId: p.milestones[0].id },
       { t: 'note', projectId: p.id, text: 'x' }, { t: 'read', keys: ['a'] }, { t: 'toast', text: 'x' },
+      { t: 'saveTask', projectId: p.id, task: { ...p.tasks[0], name: 'x' }, isNew: false },
+      { t: 'saveTask', projectId: p.id, task: { ...p.tasks[0], id: 'new' }, isNew: true },
+      { t: 'removeTask', projectId: p.id, taskId: p.tasks[0].id },
+      { t: 'saveMilestone', projectId: p.id, milestone: { ...p.milestones[0], date: '2000-01-01' }, isNew: false },
+      { t: 'saveMilestone', projectId: p.id, milestone: { ...p.milestones[0], id: 'new' }, isNew: true },
+      { t: 'removeMilestone', projectId: p.id, milestoneId: p.milestones[0].id },
     ];
     // Frozen objects throw if anything tries to edit them in place.
     for (const m of msgs) expect(() => reducer(s, m), m.t).not.toThrow();
@@ -99,6 +106,87 @@ describe('reducer', () => {
     expect(byId(twice, p.id).tasks[0].done).toBe(task.done);
   });
 
+  describe('tasks and milestones', () => {
+    const task = (over: Partial<Task> = {}): Task => ({ id: 't-new', name: 'Check rigging certificates', scopeId: null, assigneeId: null, due: null, done: false, completed: null, ...over });
+
+    it('ticking a task records today as its completion date, and reopening clears it', () => {
+      const s = start();
+      const p = first(s);
+      const open = p.tasks.find((x) => !x.done)!;
+      const done = byId(reducer(s, { t: 'task', projectId: p.id, taskId: open.id }), p.id).tasks.find((x) => x.id === open.id)!;
+      expect(done.completed).toBe(todayISO());
+      const reopened = byId(reducer(s, { t: 'task', projectId: p.id, taskId: p.tasks.find((x) => x.done)!.id }), p.id);
+      expect(reopened.tasks.find((x) => x.id === p.tasks.find((t) => t.done)!.id)!.completed).toBeNull();
+    });
+
+    it('adds a task at the end and logs it', () => {
+      const s = start();
+      const p = first(s);
+      const next = reducer(s, { t: 'saveTask', projectId: p.id, task: task(), isNew: true });
+      const got = byId(next, p.id);
+      expect(got.tasks).toHaveLength(p.tasks.length + 1);
+      expect(got.tasks[got.tasks.length - 1].name).toBe('Check rigging certificates');
+      expect(got.activity[0].action).toBe('Task added · Check rigging certificates');
+      expect(next.toast).toBe('Task added');
+    });
+
+    it('edits a task in place, keeping its position', () => {
+      const s = start();
+      const p = first(s);
+      const edited = { ...p.tasks[0], name: 'Renamed', due: '2026-12-01' };
+      const got = byId(reducer(s, { t: 'saveTask', projectId: p.id, task: edited, isNew: false }), p.id);
+      expect(got.tasks[0]).toEqual(edited);
+      expect(got.tasks).toHaveLength(p.tasks.length);
+      expect(got.activity[0].action).toBe('Task edited · Renamed');
+    });
+
+    it('removes a task and logs its name', () => {
+      const s = start();
+      const p = first(s);
+      const got = byId(reducer(s, { t: 'removeTask', projectId: p.id, taskId: p.tasks[0].id }), p.id);
+      expect(got.tasks.map((x) => x.id)).not.toContain(p.tasks[0].id);
+      expect(got.activity[0].action).toBe(`Task removed · ${p.tasks[0].name}`);
+    });
+
+    it('keeps milestones in date order, with undated ones last', () => {
+      const s = start();
+      const p = first(s);
+      const early = { id: 'm-early', name: 'Site visit', date: '2000-01-01', done: false };
+      const undated = { id: 'm-later', name: 'Handover pack', date: null, done: false };
+      const withEarly = reducer(s, { t: 'saveMilestone', projectId: p.id, milestone: early, isNew: true });
+      const got = byId(reducer(withEarly, { t: 'saveMilestone', projectId: p.id, milestone: undated, isNew: true }), p.id);
+      expect(got.milestones[0].id).toBe('m-early');
+      expect(got.milestones[got.milestones.length - 1].id).toBe('m-later');
+    });
+
+    it('logs the old and new date when a milestone moves', () => {
+      const s = start();
+      const p = first(s);
+      const ms = p.milestones[0];
+      const got = byId(reducer(s, { t: 'saveMilestone', projectId: p.id, milestone: { ...ms, date: '2099-01-01' }, isNew: false }), p.id);
+      expect(got.activity[0]).toMatchObject({ action: `Milestone edited · ${ms.name}`, from: ms.date, to: '2099-01-01' });
+    });
+
+    it('removes a milestone and logs its name', () => {
+      const s = start();
+      const p = first(s);
+      const got = byId(reducer(s, { t: 'removeMilestone', projectId: p.id, milestoneId: p.milestones[0].id }), p.id);
+      expect(got.milestones).toHaveLength(p.milestones.length - 1);
+      expect(got.activity[0].action).toBe(`Milestone removed · ${p.milestones[0].name}`);
+    });
+
+    it('ignores an edit or removal of a task or milestone that no longer exists', () => {
+      const s = start();
+      const p = first(s);
+      for (const m of [
+        { t: 'saveTask', projectId: p.id, task: task({ id: 'gone' }), isNew: false },
+        { t: 'removeTask', projectId: p.id, taskId: 'gone' },
+        { t: 'saveMilestone', projectId: p.id, milestone: { id: 'gone', name: 'x', date: null, done: false }, isNew: false },
+        { t: 'removeMilestone', projectId: p.id, milestoneId: 'gone' },
+      ] as Msg[]) expect(byId(reducer(s, m), p.id), m.t).toBe(p);
+    });
+  });
+
   it('removing sample data keeps your own records and clears links to removed people', () => {
     const s = start();
     const own: Project = { ...first(s), id: 'mine', number: 'CRM-2026-9999' };
@@ -110,6 +198,7 @@ describe('reducer', () => {
     const next = reducer(state, { t: 'removeDemo' });
     expect(next.projects.map((p) => p.id)).toEqual(['mine']);
     expect(next.projects[0].pmId).toBe('');
+    expect(next.projects[0].tasks.every((t) => t.assigneeId === null)).toBe(true);
     expect(next.people).toEqual([]);
     expect(next.demo).toBeUndefined();
   });

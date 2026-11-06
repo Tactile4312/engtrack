@@ -7,7 +7,7 @@ export function normalizeProject(raw: Project): Project {
     ...raw,
     archived: raw.archived ?? false,
     scopes: raw.scopes ?? [],
-    tasks: raw.tasks ?? [],
+    tasks: (raw.tasks ?? []).map((t) => ({ ...t, completed: t.completed ?? null })),
     milestones: raw.milestones ?? [],
     notes: raw.notes ?? [],
     attachments: raw.attachments ?? [],

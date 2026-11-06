@@ -68,6 +68,7 @@ export function buildSeed(): { projects: Project[]; clients: Client[] } {
     const sc = scopes(o.sc, o.pri);
     const tasks: Task[] = (o.tasks ?? []).map(([name, st, who, due, done]) => ({
       id: id('t'), name, scopeId: st ? sc.find((x) => x.type === st)!.id : null, assigneeId: who, due: d(due), done,
+      completed: done ? d(Math.min(due, 0)) : null,
     }));
     const activity: Activity[] = [
       ...(o.activity ?? []).map(([mins, userId, action, from, to]) => ({ id: id('a'), at: ago(mins), userId, action, from, to })),

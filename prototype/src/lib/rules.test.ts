@@ -105,6 +105,10 @@ describe('Clients', () => {
     const e = validateClient({ ...draft, contact: ' ', email: 'not-an-email', phone: '12-ab', salesId: '' }, clients);
     expect(Object.keys(e).sort()).toEqual(['contact', 'email', 'phone', 'salesId']);
   });
+  it('lets admins and PMs plan tasks and milestones, not engineers or salespeople', () => {
+    expect(['u-admin', 'u-pm1'].every((id) => can(user(id), 'plan'))).toBe(true);
+    expect(['u-e1', 'u-s1'].some((id) => can(user(id), 'plan'))).toBe(false);
+  });
   it('lets admins, PMs and salespeople add clients, not engineers', () => {
     expect(['u-admin', 'u-pm1', 'u-s1'].every((id) => can(user(id), 'addClient'))).toBe(true);
     expect(can(user('u-e1'), 'addClient')).toBe(false);

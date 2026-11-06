@@ -20,6 +20,11 @@ describe('older saved records', () => {
 
   it('leaves a complete record unchanged', () => expect(normalizeProject(current)).toEqual(current));
 
+  it('gives tasks saved before completion dates existed an empty completion date', () => {
+    const withOldTask = { ...current, tasks: [{ id: 't', name: 'x', scopeId: null, assigneeId: null, due: null, done: true }] };
+    expect(normalizeProject(withOldTask as Project).tasks[0].completed).toBeNull();
+  });
+
   it('accepts an older backup and fills in the gaps', () => {
     const b = makeBackup({ projects: [old as Project], clients: [], people: USERS, read: {} }, 'x');
     expect(parseBackup(JSON.stringify(b), USERS[0].id).projects[0].tasks).toEqual([]);
