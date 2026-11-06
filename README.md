@@ -52,6 +52,7 @@ cd prototype
 npm install
 npm run dev        # http://localhost:5173 with live reload
 npm test           # rules, backup file checks and CSV export
+npm run e2e        # browser tests in Chrome: demo at desktop and phone size, plus sign-in and saving (see below)
 npm run build      # live app: one self-contained file, dist/index.html (needs prototype/.env.local)
 npm run build:demo # demo: dist-demo/index.html (no login, no database)
 bash capture.sh    # after a build: refresh the PNG mockups (uses Chrome)
@@ -90,7 +91,16 @@ Rules that keep it from breaking:
 
 1. **New field on a saved record:** add its default in `lib/normalize.ts`. Records and backups saved earlier won't have it.
 2. **Never change objects in place.** Auto-save finds changes by comparing objects, so an in-place edit would never be saved.
-3. **Run `npm test` and `npm run build` before publishing.** GitHub runs the tests and the demo build on every push; don't publish on a red check.
+3. **Run `npm test`, `npm run e2e` and `npm run build` before publishing.** GitHub runs the tests, the demo build and the browser tests on every push; don't publish on a red check.
+
+### Browser tests (`npm run e2e`)
+
+Playwright drives the installed Google Chrome against fresh production builds (not the dev server). Tests live in `prototype/e2e/`:
+
+- `demo.e2e.ts` runs at desktop and phone size: every screen opens without errors, create project, search, notes.
+- `live.e2e.ts` runs the signed-in build against `fake-supabase.ts`, a stand-in that answers sign-in and table reads and writes in memory. The build is pointed at a fake address and every other outside request is blocked, so these tests can never touch the real or test database. They cover a wrong password, first sign-in, saving and reloading, and signing out safely (saving first, asking when a save failed, and stopping after a sign-out in another tab).
+
+When a test fails, `npx playwright show-trace prototype/test-results/<test>/trace.zip` replays it step by step. On GitHub the traces are attached to the failed run.
 4. **Try risky changes on a separate Supabase test project,** never on the client's data.
 
 ## Backups and restoring
@@ -105,5 +115,5 @@ The file contains client and project data, so don't commit it to this public rep
 
 ## Chart and UI notes
 
-- Charts use one blue series, or blue plus red for on-time/overdue (checked for colour-blind separation). Text never uses series colours; status badges carry an icon and a label.
+- Charts use the brand pink, or pink plus orange-red for on-time/late. Re-checked 2026-11-06 after the pink theme: the pair stays distinct for the common red-green colour blindness types, but not for the rare blue-yellow type (tritanopia); a darker plum for "on time" would fix that. Text never uses series colours; status badges carry an icon and a label.
 - Recharts (MIT) for the monthly chart; the Gantt chart and calendar are custom, so there are no licence questions.

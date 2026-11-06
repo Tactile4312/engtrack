@@ -21,3 +21,11 @@ jobs:
       - run: npm ci
       - run: npm test
       - run: npm run build:demo
+      # Browser tests use the runner's preinstalled Google Chrome and a fake Supabase (no secrets needed).
+      - run: npm run e2e
+      - if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: playwright-traces
+          path: prototype/test-results/
+          retention-days: 7

@@ -2,6 +2,9 @@
 node_modules/
 prototype/dist/
 prototype/dist-demo/
+prototype/dist-e2e-*/
+prototype/test-results/
+prototype/playwright-report/
 
 # local environment and secrets
 .env
