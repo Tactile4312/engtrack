@@ -115,7 +115,8 @@ test('after signing out in another tab, this tab stops trying to save', async ({
   await other.goto('/?bar=0');
   await signOutButton(other).click();
   await expect(signInForm(other)).toBeVisible();
-  // The browser passes the sign-out between tabs on its own schedule; allow for a busy machine.
+  // Back to the first tab, as a person would. (Browsers slow down background tabs, a lot on a busy machine.)
+  await page.bringToFront();
   await expect(signInForm(page)).toBeVisible({ timeout: 15_000 });
 
   // Once the connection is back, nothing from the ended session may be written.
