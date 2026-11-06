@@ -10,7 +10,7 @@ export const TEST_EMAIL = 'tester@example.com';
 export const TEST_PASSWORD = 'right-password';
 const USER_ID = '00000000-0000-4000-8000-000000000001';
 
-type Row = { owner: string; id: string; data: unknown };
+type Row = { owner: string; id: string; data: unknown; updated_at: string };
 
 export interface Call {
   method: string;
@@ -50,6 +50,13 @@ export class FakeSupabase {
     return this.calls.findIndex(pred);
   }
 
+  /** Acts as another device: changes a stored record and stamps it with a later time. */
+  editElsewhere(table: string, id: string, change: (data: Record<string, unknown>) => Record<string, unknown>) {
+    const row = this.table(table).get(id);
+    if (!row) throw new Error(`no ${table} row ${id}`);
+    this.table(table).set(id, { ...row, data: change(row.data as Record<string, unknown>), updated_at: new Date(Date.now() + 1000).toISOString() });
+  }
+
   private table(name: string) {
     if (!this.tables.has(name)) this.tables.set(name, new Map());
     return this.tables.get(name)!;
@@ -85,22 +92,29 @@ export class FakeSupabase {
   private rest(route: Route, req: Request, name: string, url: URL) {
     const rows = this.table(name);
     const method = req.method();
-    if (method === 'GET') return json(route, 200, [...rows.values()].map((r) => ({ data: r.data })));
+    if (method === 'GET') {
+      // Supports what the app asks for: ?select=a,b,c and ?id=in.(x,y)
+      const cols = (url.searchParams.get('select') ?? '*').split(',').map((c) => c.trim());
+      const only = url.searchParams.has('id') ? new Set(inList(url.searchParams.get('id')!)) : null;
+      const list = [...rows.values()].filter((r) => !only || only.has(r.id));
+      return json(route, 200, list.map((r) => (cols.includes('*') ? r : Object.fromEntries(cols.map((c) => [c, r[c as keyof Row]])))));
+    }
     if (this.failWrites) return json(route, 503, { message: 'Service unavailable (simulated)' });
     if (method === 'POST') {
       const body = JSON.parse(req.postData() ?? '[]');
-      for (const r of Array.isArray(body) ? body : [body]) rows.set(r.id ?? r.owner, r);
+      for (const r of Array.isArray(body) ? body : [body]) rows.set(r.id ?? r.owner, { ...r, updated_at: r.updated_at ?? new Date().toISOString() });
       return route.fulfill({ status: 201, headers: cors(), body: '' });
     }
     if (method === 'DELETE') {
-      // The app deletes with ?id=in.(a,b,c)
-      const ids = (url.searchParams.get('id') ?? '').replace(/^in\.\(|\)$/g, '').split(',').map((s) => s.replace(/^"|"$/g, ''));
-      for (const id of ids) rows.delete(id);
+      for (const id of inList(url.searchParams.get('id') ?? '')) rows.delete(id);
       return route.fulfill({ status: 204, headers: cors(), body: '' });
     }
     return json(route, 405, { message: `fake rest has no ${method}` });
   }
 }
+
+/** Reads PostgREST's in.(a,b,"c d") filter. */
+const inList = (v: string) => v.replace(/^in\.\(|\)$/g, '').split(',').map((x) => x.replace(/^"|"$/g, '')).filter(Boolean);
 
 const cors = () => ({
   'access-control-allow-origin': '*',

@@ -23,6 +23,7 @@ const NAV: { page: Route['page']; label: string; Icon: typeof Home }[] = [
 export function SaveBadge() {
   const { save } = useApp();
   if (!save) return null;
+  if (save === 'conflict') return <span role="status" className="flex items-center gap-1 text-[12px] font-medium text-crit"><AlertTriangle size={14} aria-hidden />Not saved, changed elsewhere</span>;
   if (save === 'error') return <span role="status" className="flex items-center gap-1 text-[12px] font-medium text-crit"><AlertTriangle size={14} aria-hidden />Not saved, retrying…</span>;
   if (save === 'saving') return <span role="status" className="text-[12px] text-ink-3">Saving…</span>;
   return <span role="status" className="flex items-center gap-1 text-[12px] text-ink-3"><Check size={14} aria-hidden />Saved</span>;

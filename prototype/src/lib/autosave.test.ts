@@ -83,6 +83,37 @@ describe('autosave', () => {
     expect(statuses[statuses.length - 1]).toBe('saved');
   });
 
+  it('does not retry a failure that retrying cannot fix, but tries again on the next edit', async () => {
+    const saved: number[] = [];
+    let blocked = true;
+    const statuses: SaveStatus[] = [];
+    const auto = createAutosave<number>(
+      async (v) => { if (blocked) throw new Error('conflict'); saved.push(v); },
+      (s) => statuses.push(s),
+      { debounceMs: 600, retryMs: 5000, retryable: (e) => !(e instanceof Error && e.message === 'conflict') },
+    );
+    auto.push(1);
+    await vi.advanceTimersByTimeAsync(600);
+    expect(statuses[statuses.length - 1]).toBe('error');
+    await vi.advanceTimersByTimeAsync(60000);
+    expect(saved).toEqual([]);
+    blocked = false;
+    auto.push(2);
+    await vi.advanceTimersByTimeAsync(600);
+    expect(saved).toEqual([2]);
+  });
+
+  it('flush tries a blocked save again straight away', async () => {
+    let blocked = true;
+    const saved: number[] = [];
+    const auto = createAutosave<number>(async (v) => { if (blocked) throw new Error('conflict'); saved.push(v); }, () => {}, { retryable: () => false });
+    auto.push(1);
+    await expect(auto.flush()).resolves.toBe(false);
+    blocked = false;
+    await expect(auto.flush()).resolves.toBe(true);
+    expect(saved).toEqual([1]);
+  });
+
   describe('flush (before signing out)', () => {
     it('saves a waiting edit straight away instead of after the pause', async () => {
       const save = vi.fn(async () => {});

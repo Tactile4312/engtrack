@@ -1,7 +1,8 @@
 import { useCallback, useEffect, useRef, useState, type ReactNode } from 'react';
 import type { Session } from '@supabase/supabase-js';
 import { createAutosave } from '../lib/autosave';
-import { ME_ID, loadAll, saveDiff, saveSettings, setOwner, signOut, supabase, type Settings, type Snapshot } from '../lib/cloud';
+import { ConflictError, ME_ID, changedElsewhere, loadAll, noVersions, saveDiff, saveSettings, setOwner, signOut, supabase, type Settings, type Snapshot, type TableVersions } from '../lib/cloud';
+import { SyncBanner, type SyncProblem } from './SyncBanner';
 import { buildSeed, USERS } from '../mock-data/seed';
 import type { SaveState, State } from '../store/AppStore';
 import type { User } from '../types';
@@ -66,12 +67,31 @@ export interface LiveSession {
 
 const UNSAVED_SIGN_OUT = 'Your latest changes could not be saved. Check your internet connection.\n\nSign out anyway and lose those changes?';
 
+/** Names to show for records another device changed, looked up in this device's copy. */
+function describe(e: ConflictError, s: State, base: { projects: State['projects']; clients: State['clients']; people: State['people'] }): string[] {
+  return e.ids.map((id) => {
+    if (e.table === 'projects') {
+      const p = s.projects.find((x) => x.id === id) ?? base.projects.find((x) => x.id === id);
+      return p ? `${p.number} · ${p.name}` : id;
+    }
+    const list: { id: string; name: string }[] = e.table === 'clients' ? [...s.clients, ...base.clients] : [...s.people, ...base.people];
+    return list.find((x) => x.id === id)?.name ?? id;
+  });
+}
+
+/** How often, at most, to check for changes from another device when this tab comes back into view. */
+const RECHECK_MS = 15_000;
+
 /** Loads the signed-in user's data, then saves every change back (debounced). */
 function Loaded({ session, render }: { session: Session; render: (live: LiveSession) => ReactNode }) {
   const [snap, setSnap] = useState<Snapshot | null>(null);
   const [error, setError] = useState('');
   const [save, setSave] = useState<SaveState>('saved');
+  const [problem, setProblem] = useState<SyncProblem | null>(null);
   const saved = useRef<{ projects: State['projects']; clients: State['clients']; people: State['people']; settings: string } | null>(null);
+  const versions = useRef<TableVersions>(noVersions());
+  const force = useRef(false);
+  const leaving = useRef(false);
   const autosave = useRef<ReturnType<typeof createAutosave<State>> | null>(null);
 
   // One autosave per signed-in session. Stopping it when this screen closes means a change left
@@ -80,15 +100,56 @@ function Loaded({ session, render }: { session: Session; render: (live: LiveSess
     const a = createAutosave<State>(async (s) => {
       const base = saved.current!;
       const settings: Settings = { read: s.read, demo: s.demo, lastBackup: s.lastBackup };
-      await saveDiff('people', base.people, s.people);
-      await saveDiff('clients', base.clients, s.clients);
-      await saveDiff('projects', base.projects, s.projects);
+      const opts = { force: force.current };
+      try {
+        await saveDiff('people', base.people, s.people, versions.current.people, opts);
+        await saveDiff('clients', base.clients, s.clients, versions.current.clients, opts);
+        await saveDiff('projects', base.projects, s.projects, versions.current.projects, opts);
+      } catch (e) {
+        if (e instanceof ConflictError) setProblem({ kind: 'conflict', items: describe(e, s, base) });
+        throw e;
+      }
       const json = JSON.stringify(settings);
       if (json !== base.settings) await saveSettings(settings);
       saved.current = { projects: s.projects, clients: s.clients, people: s.people, settings: json };
-    }, setSave);
+      force.current = false;
+      setProblem((p) => (p?.kind === 'conflict' ? null : p));
+    }, setSave, { retryable: (e) => !(e instanceof ConflictError) });
     autosave.current = a;
     return () => a.stop();
+  }, []);
+
+  const reload = useCallback(() => {
+    leaving.current = true;
+    location.reload();
+  }, []);
+
+  const keepMine = useCallback(() => {
+    force.current = true;
+    void autosave.current?.flush();
+  }, []);
+
+  // Coming back to this tab or app: check whether another device saved something meanwhile.
+  const lastCheck = useRef(0);
+  const saveNow = useRef(save);
+  saveNow.current = save;
+  useEffect(() => {
+    const check = async () => {
+      if (document.visibilityState !== 'visible' || !saved.current || saveNow.current !== 'saved') return;
+      if (Date.now() - lastCheck.current < RECHECK_MS) return;
+      lastCheck.current = Date.now();
+      try {
+        if (await changedElsewhere(versions.current)) setProblem((p) => p ?? { kind: 'stale' });
+      } catch {
+        // Offline or similar: the next save will report it.
+      }
+    };
+    document.addEventListener('visibilitychange', check);
+    window.addEventListener('focus', check);
+    return () => {
+      document.removeEventListener('visibilitychange', check);
+      window.removeEventListener('focus', check);
+    };
   }, []);
 
   const signOutSafely = useCallback(async () => {
@@ -102,15 +163,19 @@ function Loaded({ session, render }: { session: Session; render: (live: LiveSess
     setOwner(session.user.id);
     (async () => {
       try {
-        let data = await loadAll();
+        const loaded = await loadAll();
+        let data = loaded.snapshot;
+        versions.current = loaded.versions;
         if (data.people.length === 0) {
           // First sign-in: store the starting data. People go last, so an interrupted
-          // first load simply runs again (same ids, so nothing is duplicated).
+          // first load simply runs again (same ids, so nothing is duplicated; forced,
+          // because the rows from the interrupted run are not in `versions` yet).
           const first = firstSnapshot(session.user.email ?? 'me@example.com');
-          await saveDiff('projects', [], first.projects);
-          await saveDiff('clients', [], first.clients);
+          const v = versions.current;
+          await saveDiff('projects', [], first.projects, v.projects, { force: true });
+          await saveDiff('clients', [], first.clients, v.clients, { force: true });
           await saveSettings(first.settings);
-          await saveDiff('people', [], first.people);
+          await saveDiff('people', [], first.people, v.people, { force: true });
           data = first;
         }
         saved.current = { projects: data.projects, clients: data.clients, people: data.people, settings: JSON.stringify(data.settings) };
@@ -131,7 +196,7 @@ function Loaded({ session, render }: { session: Session; render: (live: LiveSess
   // Warn before closing the tab with unsaved changes.
   useEffect(() => {
     const warn = (e: BeforeUnloadEvent) => {
-      if (save !== 'saved') e.preventDefault();
+      if (save !== 'saved' && !leaving.current) e.preventDefault();
     };
     window.addEventListener('beforeunload', warn);
     return () => window.removeEventListener('beforeunload', warn);
@@ -139,7 +204,12 @@ function Loaded({ session, render }: { session: Session; render: (live: LiveSess
 
   if (error) return <Message><div className="grid gap-2"><p className="font-semibold text-ink">Could not load your data.</p><p>{error}</p><p>Check your internet connection and reload the page.</p></div></Message>;
   if (!snap) return <Message>Loading your projects…</Message>;
-  return <>{render({ snapshot: snap, onState, save, signOut: signOutSafely })}</>;
+  return (
+    <>
+      {render({ snapshot: snap, onState, save: problem?.kind === 'conflict' ? 'conflict' : save, signOut: signOutSafely })}
+      {problem && <SyncBanner problem={problem} onReload={reload} onKeepMine={keepMine} onDismiss={() => setProblem(null)} />}
+    </>
+  );
 }
 
 export function LiveGate({ render }: { render: (live: LiveSession) => ReactNode }) {

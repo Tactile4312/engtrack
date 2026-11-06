@@ -13,7 +13,7 @@ export type { ProjectFilters, Route, State };
 // Current people list, for the name helpers below (kept in step with the store).
 let PEOPLE: User[] = USERS;
 
-export type SaveState = 'saved' | 'saving' | 'error';
+export type SaveState = 'saved' | 'saving' | 'error' | 'conflict';
 
 export type Device = 'auto' | 'desktop' | 'mobile';
 

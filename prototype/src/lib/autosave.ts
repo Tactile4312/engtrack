@@ -1,13 +1,18 @@
 // Saves the newest value after a short pause, one save at a time, and retries after a delay when a save fails.
 // flush() saves straight away and reports whether everything reached the database (used before signing out).
 // stop() drops anything unsaved and ignores later changes (used when the signed-in session ends).
+// A failure that retrying cannot fix (see `retryable`) waits for the next edit or flush() instead.
 
 export type SaveStatus = 'saved' | 'saving' | 'error';
 
 export function createAutosave<T>(
   save: (value: T) => Promise<void>,
   onStatus: (status: SaveStatus) => void,
-  { debounceMs = 600, retryMs = 5000 }: { debounceMs?: number; retryMs?: number } = {},
+  {
+    debounceMs = 600,
+    retryMs = 5000,
+    retryable = () => true,
+  }: { debounceMs?: number; retryMs?: number; retryable?: (error: unknown) => boolean } = {},
 ) {
   let pending: T | null = null;
   /** The save in progress, resolving to whether it (and any edit queued during it) succeeded. */
@@ -25,11 +30,13 @@ export function createAutosave<T>(
     if (stopped || pending === null) return Promise.resolve(true);
     const value = pending;
     pending = null;
+    let retry = true;
     current = save(value).then(
       () => true,
-      () => {
-        // Keep the newest value queued and wait before trying again.
+      (error: unknown) => {
+        // Keep the newest value queued.
         pending = pending ?? value;
+        retry = retryable(error);
         return false;
       },
     ).then((ok) => {
@@ -37,7 +44,7 @@ export function createAutosave<T>(
       if (stopped) return false;
       if (!ok) {
         onStatus('error');
-        schedule(retryMs);
+        if (retry) schedule(retryMs);
         return false;
       }
       if (pending !== null) {

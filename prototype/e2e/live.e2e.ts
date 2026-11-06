@@ -131,3 +131,60 @@ test('a task added to a project is saved and is still there after a reload', asy
   await page.reload();
   await expect(page.getByText('Book the 750 t crawler crane')).toBeVisible();
 });
+
+test.describe('edits from another device', () => {
+  const PROJECT = 'CRM-2026-0142';
+  const renamedElsewhere = (d: Record<string, unknown>) => ({ ...d, name: 'Renamed on the laptop' });
+
+  test('a change to a record edited elsewhere is held back, and Keep mine saves it', async ({ page }) => {
+    await signIn(page);
+    await openNotes(page);
+    db.editElsewhere('projects', PROJECT, renamedElsewhere);
+    await addNote(page, 'Written on the phone');
+
+    const banner = page.getByRole('alert').filter({ hasText: 'Changed on another device' });
+    await expect(banner).toBeVisible();
+    await expect(banner).toContainText(`${PROJECT} · Reactor Vessel R-301 Lift`);
+    await expect(page.getByText('Not saved, changed elsewhere')).toBeVisible();
+    expect(db.savesContaining('projects', 'Written on the phone')).toHaveLength(0);
+
+    await page.locator('#sync-keep').click();
+    await expect.poll(() => db.savesContaining('projects', 'Written on the phone').length).toBe(1);
+    await expect(banner).toHaveCount(0);
+    await expect(page.getByText('Saved', { exact: true })).toBeVisible();
+  });
+
+  test('Reload drops the change here and shows the other device’s version', async ({ page }) => {
+    await signIn(page);
+    await openNotes(page);
+    db.editElsewhere('projects', PROJECT, renamedElsewhere);
+    await addNote(page, 'Thrown away on reload');
+    await page.locator('#sync-reload').click();
+
+    await expect(page.getByRole('heading', { name: /Renamed on the laptop/ })).toBeVisible();
+    await page.getByRole('tab', { name: /^Notes/ }).click();
+    await expect(page.getByText('Thrown away on reload')).toHaveCount(0);
+    expect(db.savesContaining('projects', 'Thrown away on reload')).toHaveLength(0);
+  });
+
+  test('coming back to the tab offers to load changes saved elsewhere', async ({ page }) => {
+    await signIn(page);
+    await page.goto(`/?bar=0&screen=project&id=${PROJECT}`);
+    await expect(page.getByRole('heading', { name: /Reactor Vessel R-301 Lift/ })).toBeVisible();
+    db.editElsewhere('projects', PROJECT, renamedElsewhere);
+
+    await page.evaluate(() => window.dispatchEvent(new Event('focus')));
+    await expect(page.getByRole('alert').filter({ hasText: 'Newer data on another device' })).toBeVisible();
+    await page.locator('#sync-reload').click();
+    await expect(page.getByRole('heading', { name: /Renamed on the laptop/ })).toBeVisible();
+  });
+
+  test('editing records nobody else touched saves without asking', async ({ page }) => {
+    await signIn(page);
+    await openNotes(page);
+    db.editElsewhere('projects', 'CRM-2026-0131', renamedElsewhere); // a different project
+    await addNote(page, 'Unrelated edit');
+    await expect.poll(() => db.savesContaining('projects', 'Unrelated edit').length).toBe(1);
+    await expect(page.getByRole('alert').filter({ hasText: 'Changed on another device' })).toHaveCount(0);
+  });
+});
