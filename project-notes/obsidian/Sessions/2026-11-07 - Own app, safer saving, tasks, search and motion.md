@@ -27,13 +27,13 @@ summary: The client left and EngTrack became the owner's own app. Added safer si
 | Testing | Playwright browser tests at desktop and phone size against production builds; signed-in tests use an in-memory fake Supabase, so they never touch real data. |
 
 ## Verified
-- Unit tests: 157 pass. Browser tests: see the final run in the commit history.
+- Unit tests: 157 pass. Browser tests: 22 demo tests passed in the last full run; all 11 signed-in tests passed before publishing `473f0aa`.
 - Each safety feature was checked by turning it off on purpose: the related tests fail without it.
 - Published builds were checked for the real project address and for no test-project or fake address and no secret key; the live sign-in page and demo loaded without errors.
 
 ## Not verified
 - Signed-in use against the real database (nobody signed in to the real account in this session).
-- GitHub Actions on these commits (blocked by billing).
+- GitHub Actions on these commits (off: billing lock).
 
 ## Decisions
 - Tasks stay a simple checklist under scopes. Description, priority, status, progress and dependencies for tasks are deferred.
@@ -41,7 +41,7 @@ summary: The client left and EngTrack became the owner's own app. Added safer si
 - Browser tests run 2 at a time; this laptop runs short of memory.
 
 ## Next steps
-- Fix the GitHub billing lock so CI runs again.
+- GitHub checks stay off (billing lock, not being paid). Run `npm test` and `npm run e2e` locally before every publish.
 - Sign in to the live app, check the data, and download a backup before any clean-up of the former client's records.
 - Decide what to do with the former client's data now that the app is personal (keep, export, or delete after a backup).
 - Ideas: dark mode (needs the hard-coded colours moved to theme tokens first), a "My week" agenda, CSV import.

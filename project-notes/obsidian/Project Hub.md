@@ -60,7 +60,7 @@ source: Spec pasted into Claude Code 2026-10-19, saved as REQUIREMENTS.md in the
 - [ ] Confirm at the demo: should the Create form show the next free project number as a hint? (assumption built into v0.1)
 - [ ] Optional: PowerPoint deck from `design/polished-mockups/`
 - [x] Own app: safer saving, tasks and milestones, reminders, quick search, installable, motion (2026-11-07)
-- [ ] Fix the GitHub billing lock so CI runs again
+- [x] GitHub checks are off for good (billing lock, not being paid); run `npm test` and `npm run e2e` locally before every publish
 - [ ] Decide what to do with the former client's records (back up first)
 
 ## What to Load
