@@ -5,7 +5,7 @@ import {
 import { useApp, type Route } from '../store/AppStore';
 import { useInbox } from '../lib/hooks';
 import { Avatar, cx } from './ui';
-import { LIVE, signOut } from '../lib/cloud';
+import { LIVE } from '../lib/cloud';
 import { PersonModal } from './PersonModal';
 
 const NAV: { page: Route['page']; label: string; Icon: typeof Home }[] = [
@@ -123,7 +123,7 @@ function Profile() {
 }
 
 export function DesktopShell({ children }: { children: ReactNode }) {
-  const { s, go } = useApp();
+  const { s, go, signOut } = useApp();
   const { unread } = useInbox();
   const cur = sectionOf(s.route);
   return (
@@ -146,7 +146,7 @@ export function DesktopShell({ children }: { children: ReactNode }) {
         </nav>
         <div className="flex-1" />
         {LIVE ? (
-          <button onClick={() => void signOut()} className="flex items-center gap-3 rounded-md px-3 py-2 text-left text-rail-3 hover:bg-rail-2/60 hover:text-white"><LogOut size={17} aria-hidden />Sign out</button>
+          <button onClick={() => void signOut?.()} className="flex items-center gap-3 rounded-md px-3 py-2 text-left text-rail-3 hover:bg-rail-2/60 hover:text-white"><LogOut size={17} aria-hidden />Sign out</button>
         ) : (
           <p className="px-3 text-[11px] leading-snug text-rail-3">Prototype v0.2<br />Sample records only</p>
         )}

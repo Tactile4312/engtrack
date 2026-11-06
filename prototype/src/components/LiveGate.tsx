@@ -1,7 +1,7 @@
 import { useCallback, useEffect, useRef, useState, type ReactNode } from 'react';
 import type { Session } from '@supabase/supabase-js';
 import { createAutosave } from '../lib/autosave';
-import { ME_ID, loadAll, saveDiff, saveSettings, setOwner, supabase, type Settings, type Snapshot } from '../lib/cloud';
+import { ME_ID, loadAll, saveDiff, saveSettings, setOwner, signOut, supabase, type Settings, type Snapshot } from '../lib/cloud';
 import { buildSeed, USERS } from '../mock-data/seed';
 import type { SaveState, State } from '../store/AppStore';
 import type { User } from '../types';
@@ -56,22 +56,47 @@ function Message({ children }: { children: ReactNode }) {
   return <div className="grid h-full place-items-center bg-paper p-6 text-center text-[14px] text-ink-2">{children}</div>;
 }
 
+export interface LiveSession {
+  snapshot: Snapshot;
+  onState: (s: State) => void;
+  save: SaveState;
+  /** Saves any waiting change first, and asks before signing out if it could not be saved. */
+  signOut: () => Promise<void>;
+}
+
+const UNSAVED_SIGN_OUT = 'Your latest changes could not be saved. Check your internet connection.\n\nSign out anyway and lose those changes?';
+
 /** Loads the signed-in user's data, then saves every change back (debounced). */
-function Loaded({ session, render }: { session: Session; render: (snap: Snapshot, onState: (s: State) => void, save: SaveState) => ReactNode }) {
+function Loaded({ session, render }: { session: Session; render: (live: LiveSession) => ReactNode }) {
   const [snap, setSnap] = useState<Snapshot | null>(null);
   const [error, setError] = useState('');
   const [save, setSave] = useState<SaveState>('saved');
   const saved = useRef<{ projects: State['projects']; clients: State['clients']; people: State['people']; settings: string } | null>(null);
-  const [autosave] = useState(() => createAutosave<State>(async (s) => {
-    const base = saved.current!;
-    const settings: Settings = { read: s.read, demo: s.demo, lastBackup: s.lastBackup };
-    await saveDiff('people', base.people, s.people);
-    await saveDiff('clients', base.clients, s.clients);
-    await saveDiff('projects', base.projects, s.projects);
-    const json = JSON.stringify(settings);
-    if (json !== base.settings) await saveSettings(settings);
-    saved.current = { projects: s.projects, clients: s.clients, people: s.people, settings: json };
-  }, setSave));
+  const autosave = useRef<ReturnType<typeof createAutosave<State>> | null>(null);
+
+  // One autosave per signed-in session. Stopping it when this screen closes means a change left
+  // over from this session can never be saved after sign-out or under another account.
+  useEffect(() => {
+    const a = createAutosave<State>(async (s) => {
+      const base = saved.current!;
+      const settings: Settings = { read: s.read, demo: s.demo, lastBackup: s.lastBackup };
+      await saveDiff('people', base.people, s.people);
+      await saveDiff('clients', base.clients, s.clients);
+      await saveDiff('projects', base.projects, s.projects);
+      const json = JSON.stringify(settings);
+      if (json !== base.settings) await saveSettings(settings);
+      saved.current = { projects: s.projects, clients: s.clients, people: s.people, settings: json };
+    }, setSave);
+    autosave.current = a;
+    return () => a.stop();
+  }, []);
+
+  const signOutSafely = useCallback(async () => {
+    const a = autosave.current;
+    if (a && !(await a.flush()) && !window.confirm(UNSAVED_SIGN_OUT)) return;
+    a?.stop();
+    await signOut();
+  }, []);
 
   useEffect(() => {
     setOwner(session.user.id);
@@ -100,8 +125,8 @@ function Loaded({ session, render }: { session: Session; render: (snap: Snapshot
     const base = saved.current;
     if (!base) return;
     const same = base.projects === s.projects && base.clients === s.clients && base.people === s.people && base.settings === JSON.stringify({ read: s.read, demo: s.demo, lastBackup: s.lastBackup });
-    if (!same) autosave.push(s);
-  }, [autosave]);
+    if (!same) autosave.current?.push(s);
+  }, []);
 
   // Warn before closing the tab with unsaved changes.
   useEffect(() => {
@@ -114,10 +139,10 @@ function Loaded({ session, render }: { session: Session; render: (snap: Snapshot
 
   if (error) return <Message><div className="grid gap-2"><p className="font-semibold text-ink">Could not load your data.</p><p>{error}</p><p>Check your internet connection and reload the page.</p></div></Message>;
   if (!snap) return <Message>Loading your projects…</Message>;
-  return <>{render(snap, onState, save)}</>;
+  return <>{render({ snapshot: snap, onState, save, signOut: signOutSafely })}</>;
 }
 
-export function LiveGate({ render }: { render: (snap: Snapshot, onState: (s: State) => void, save: SaveState) => ReactNode }) {
+export function LiveGate({ render }: { render: (live: LiveSession) => ReactNode }) {
   const [session, setSession] = useState<Session | null | undefined>(undefined);
   useEffect(() => {
     supabase!.auth.getSession().then(({ data }) => setSession(data.session));

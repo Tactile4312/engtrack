@@ -82,4 +82,85 @@ describe('autosave', () => {
     expect(saved).toEqual([1, 2]);
     expect(statuses[statuses.length - 1]).toBe('saved');
   });
+
+  describe('flush (before signing out)', () => {
+    it('saves a waiting edit straight away instead of after the pause', async () => {
+      const save = vi.fn(async () => {});
+      const { auto, statuses } = setup(save);
+      auto.push(1);
+      await expect(auto.flush()).resolves.toBe(true);
+      expect(save.mock.calls).toEqual([[1]]);
+      expect(statuses[statuses.length - 1]).toBe('saved');
+      await vi.advanceTimersByTimeAsync(10000);
+      expect(save).toHaveBeenCalledTimes(1);
+    });
+
+    it('waits for a save already running and for an edit made during it', async () => {
+      const saved: number[] = [];
+      const { auto } = setup(async (v) => {
+        await new Promise((r) => setTimeout(r, 2000));
+        saved.push(v);
+      });
+      auto.push(1);
+      await vi.advanceTimersByTimeAsync(600);
+      auto.push(2);
+      const done = auto.flush();
+      await vi.advanceTimersByTimeAsync(4000);
+      await expect(done).resolves.toBe(true);
+      expect(saved).toEqual([1, 2]);
+    });
+
+    it('reports false when the save fails, and keeps the edit for a later retry', async () => {
+      let online = false;
+      const saved: number[] = [];
+      const { auto } = setup(async (v) => { if (!online) throw new Error('offline'); saved.push(v); });
+      auto.push(1);
+      await expect(auto.flush()).resolves.toBe(false);
+      online = true;
+      await vi.advanceTimersByTimeAsync(5000);
+      expect(saved).toEqual([1]);
+    });
+
+    it('reports true when there is nothing to save', async () => {
+      const save = vi.fn(async () => {});
+      const { auto } = setup(save);
+      await expect(auto.flush()).resolves.toBe(true);
+      expect(save).not.toHaveBeenCalled();
+    });
+  });
+
+  describe('stop (after signing out)', () => {
+    it('drops a waiting edit and ignores later ones', async () => {
+      const save = vi.fn(async () => {});
+      const { auto, statuses } = setup(save);
+      auto.push(1);
+      auto.stop();
+      const before = statuses.length;
+      auto.push(2);
+      await vi.advanceTimersByTimeAsync(10000);
+      expect(save).not.toHaveBeenCalled();
+      expect(statuses.length).toBe(before);
+      await expect(auto.flush()).resolves.toBe(false);
+    });
+
+    it('stops retrying a failed save', async () => {
+      const save = vi.fn(async () => { throw new Error('signed out'); });
+      const { auto } = setup(save);
+      auto.push(1);
+      await vi.advanceTimersByTimeAsync(600);
+      auto.stop();
+      await vi.advanceTimersByTimeAsync(60000);
+      expect(save).toHaveBeenCalledTimes(1);
+    });
+
+    it('reports no status once stopped, even when a running save finishes', async () => {
+      const { auto, statuses } = setup(() => new Promise((r) => setTimeout(r, 2000)));
+      auto.push(1);
+      await vi.advanceTimersByTimeAsync(600);
+      const before = statuses.length;
+      auto.stop();
+      await vi.advanceTimersByTimeAsync(5000);
+      expect(statuses.length).toBe(before);
+    });
+  });
 });

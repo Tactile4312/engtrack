@@ -94,8 +94,8 @@ export default function App() {
 function LiveApp() {
   return (
     <LiveGate
-      render={(snapshot, onState, save) => (
-        <AppProvider snapshot={snapshot} onState={onState} save={save}>
+      render={({ snapshot, onState, save, signOut }) => (
+        <AppProvider snapshot={snapshot} onState={onState} save={save} signOut={signOut}>
           <div className="flex h-full flex-col"><Screen /></div>
         </AppProvider>
       )}

@@ -36,6 +36,8 @@ interface Ctx {
   isMobile: boolean;
   /** Live mode only: whether the latest change has reached the database. */
   save?: SaveState;
+  /** Live mode only: signs out after saving any waiting change. */
+  signOut?: () => Promise<void>;
 }
 
 const C = createContext<Ctx | null>(null);
@@ -69,7 +71,7 @@ function forOneUser(list: Notice[]): Notice[] {
   return [...out.values()];
 }
 
-export function AppProvider({ children, snapshot, onState, save }: { children: ReactNode; snapshot?: Snapshot; onState?: (s: State) => void; save?: SaveState }) {
+export function AppProvider({ children, snapshot, onState, save, signOut }: { children: ReactNode; snapshot?: Snapshot; onState?: (s: State) => void; save?: SaveState; signOut?: () => Promise<void> }) {
   const params = useMemo(readParams, []);
   const [s, dispatch] = useReducer(reducer, undefined, () => initial(params.route, params.user, snapshot));
   PEOPLE = s.people;
@@ -110,8 +112,9 @@ export function AppProvider({ children, snapshot, onState, save }: { children: R
       device, setDevice,
       isMobile: device === 'mobile' || (device === 'auto' && narrow),
       save,
+      signOut,
     };
-  }, [s, device, narrow, save]);
+  }, [s, device, narrow, save, signOut]);
 
   return <C.Provider value={value}>{children}</C.Provider>;
 }

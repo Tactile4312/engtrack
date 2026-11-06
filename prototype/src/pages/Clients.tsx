@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { BarChart3, Building2, CalendarDays, ChevronRight, LogOut, Mail, Pencil, Phone, Plus, Search, Users } from 'lucide-react';
-import { LIVE, signOut } from '../lib/cloud';
+import { LIVE } from '../lib/cloud';
 import { PersonModal } from '../components/PersonModal';
 import { shortName, useApp } from '../store/AppStore';
 import { PageHead } from '../components/Shell';
@@ -86,7 +86,7 @@ export function Clients() {
 }
 
 export function More() {
-  const { go, me, users, dispatch } = useApp();
+  const { go, me, users, dispatch, signOut } = useApp();
   const [editing, setEditing] = useState(false);
   const links = [
     { page: 'calendar', label: 'Calendar', Icon: CalendarDays },
@@ -110,7 +110,7 @@ export function More() {
         ))}
       </div>
       {LIVE ? (
-        <button onClick={() => void signOut()} className="flex min-h-[52px] w-full items-center gap-3 rounded-xl border border-line bg-white px-4 text-left text-[14.5px] text-ink"><LogOut size={20} className="text-ink-2" aria-hidden />Sign out</button>
+        <button onClick={() => void signOut?.()} className="flex min-h-[52px] w-full items-center gap-3 rounded-xl border border-line bg-white px-4 text-left text-[14.5px] text-ink"><LogOut size={20} className="text-ink-2" aria-hidden />Sign out</button>
       ) : (
       <label className="grid gap-1 rounded-xl border border-[#f1d58f] bg-[#fdf4dd] p-4 text-[12.5px] text-[#5c3d00]">
         <span className="font-semibold">Prototype: view as another person</span>
