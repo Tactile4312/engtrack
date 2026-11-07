@@ -35,7 +35,7 @@ const PAGES: { page: Route['page']; label: string; Icon: LucideIcon; liveOnly?: 
   { page: 'people', label: 'People and backups', Icon: Users, liveOnly: true },
 ];
 
-const typingIn = (t: EventTarget | null) =>
+export const typingIn = (t: EventTarget | null) =>
   t instanceof HTMLElement && (t.isContentEditable || ['INPUT', 'TEXTAREA', 'SELECT'].includes(t.tagName));
 
 export function CommandPalette() {

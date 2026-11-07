@@ -14,6 +14,7 @@ import { People } from './pages/People';
 import { ErrorBoundary } from './components/ErrorBoundary';
 import { CommandPalette } from './components/CommandPalette';
 import { Confetti } from './components/Confetti';
+import { Shortcuts } from './components/Shortcuts';
 import { LiveGate } from './components/LiveGate';
 import { LIVE } from './lib/cloud';
 
@@ -59,6 +60,7 @@ export function Screen() {
         <Toast />
         <CommandPalette />
         <Confetti />
+        <Shortcuts />
       </div>
     );
   }
@@ -68,6 +70,7 @@ export function Screen() {
       <Toast />
       <CommandPalette />
       <Confetti />
+        <Shortcuts />
     </div>
   );
   // Forced mobile preview on a wide screen: show the app inside a 390 x 844 phone frame.
