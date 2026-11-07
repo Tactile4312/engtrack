@@ -6,6 +6,7 @@ import { Avatar, Button, Card, CountUp, DueFlag, cx, staggerAt } from '../compon
 import { BarList, MonthlyColumns, Ratio, SplitBars } from '../components/charts';
 import { byScope, byStatus, deadlines, monthly, recentActivity, summary, workload, type Deadline } from '../lib/metrics';
 import { diffDays, fmt, fmtLong, relTime, showVal } from '../lib/dates';
+import { oneLinerFor } from '../lib/fun';
 import { can } from '../lib/rules';
 
 export function DeadlineRow({ d, onOpen }: { d: Deadline; onOpen: () => void; compact?: boolean }) {
@@ -142,6 +143,7 @@ export function Dashboard() {
         sub={<>{greeting()}, {me.name.split(' ')[0]} · {fmtLong(today)}{restricted && <> · showing the {visible.length} projects {me.role === 'Engineer' ? 'assigned to you' : 'for your clients'}</>}</>}
         actions={can(me, 'create') && <Button kind="primary" onClick={() => go({ page: 'new' })}><Plus size={16} />New project</Button>}
       />
+      <p className="-mt-2 text-[12.5px] italic text-ink-3" data-testid="one-liner">“{oneLinerFor(today)}”</p>
       <RemoveSampleData compact />
       <div className="stagger grid grid-cols-4 gap-3 xl:grid-cols-8">{kpis}</div>
       <div className="stagger grid grid-cols-2 gap-4 xl:grid-cols-4 [&>*]:animate-rise">

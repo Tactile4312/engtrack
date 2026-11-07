@@ -2,6 +2,7 @@ import { useState } from 'react';
 import { Archive, ArchiveRestore, CheckCircle2, ChevronDown, Copy, Diamond, Paperclip, Pencil, Plus, Trash2 } from 'lucide-react';
 import { MilestoneModal, TaskModal } from '../components/PlanModals';
 import { celebrate } from '../components/Confetti';
+import { finishesAll } from '../lib/fun';
 import { shortName, useApp, userName } from '../store/AppStore';
 import { Avatar, Button, Card, DueFlag, Empty, Field, Modal, PriorityTag, Progress, StatusBadge, Tabs, cx, inputCls } from '../components/ui';
 import { can, isClosed, projectEngineers, projectProgress } from '../lib/rules';
@@ -293,7 +294,7 @@ function TasksMilestones({ p }: { p: Project }) {
         {p.tasks.map((t) => (
           <div key={t.id} className="flex items-start gap-1 border-b border-line py-2 last:border-0">
             <label className="flex min-w-0 flex-1 cursor-pointer items-start gap-2.5">
-              <input type="checkbox" id={`task-${t.id}`} checked={t.done} disabled={!canTick} onChange={(e) => { if (!t.done) { const r = e.currentTarget.getBoundingClientRect(); celebrate({ x: r.left + r.width / 2, y: r.top }); } dispatch({ t: 'task', projectId: p.id, taskId: t.id }); }} className="mt-0.5 h-4 w-4 accent-[#c72a6b]" />
+              <input type="checkbox" id={`task-${t.id}`} checked={t.done} disabled={!canTick} onChange={(e) => { if (finishesAll(p.tasks, t.id)) celebrate({ big: true }); else if (!t.done) { const r = e.currentTarget.getBoundingClientRect(); celebrate({ x: r.left + r.width / 2, y: r.top }); } dispatch({ t: 'task', projectId: p.id, taskId: t.id }); }} className="mt-0.5 h-4 w-4 accent-[#c72a6b]" />
               <span className="min-w-0 flex-1 text-[13px]">
                 <span className={cx('block', t.done ? 'text-ink-3 line-through' : 'text-ink')}>{t.name}</span>
                 <span className="block text-[11.5px] text-ink-3">
