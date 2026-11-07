@@ -133,6 +133,16 @@ Each saved record carries the time it was last written. The app remembers that t
 - **Ctrl+K** (⌘K on a Mac), the search button in the desktop header, or **/** opens quick search: projects by number (even just the last digits), name, client or scope; clients; and every screen. Arrow keys and Enter, Escape to close. Matching lives in `lib/search.ts`.
 - Tasks with a due date now get reminders: the assignee 3 days and 1 day before, on the day and when overdue; the project manager only when overdue, or all of them if the task is unassigned. Opening a task reminder lands on the project's Tasks tab.
 
+## My week
+
+**My week** (sidebar, under More on phones, or quick search) lists everything that is the signed-in person's own job and is overdue or due in the next 7 days: projects they manage and those projects' milestones, scopes they engineer, and tasks assigned to them. It is grouped by day, with overdue first. Tasks can be ticked off right there. The logic is in `lib/myweek.ts`; it only looks at projects the person can already see.
+
+## Fun bits
+
+- Ticking a task throws a little confetti from the checkbox; ticking a project's last open task throws a full-screen party. Typing the Konami code (↑ ↑ ↓ ↓ ← → ← → B A) anywhere, or "party" in quick search, does the same. Canvas only, no library (`components/Confetti.tsx`), and off with reduced motion.
+- **?** opens the keyboard shortcuts sheet (`components/Shortcuts.tsx`).
+- The dashboard shows an engineering one-liner that changes once a day (`lib/fun.ts`).
+
 ## Installable app
 
 `prototype/public/` holds `manifest.webmanifest` and the icons (rendered from the logo). On a phone, the browser's **Add to Home Screen** gives an EngTrack icon that opens full screen; desktop Chrome and Edge offer **Install**. There is no service worker, so the app still needs a connection (on purpose: an offline copy could show stale data).

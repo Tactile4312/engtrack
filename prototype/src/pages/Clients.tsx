@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { BarChart3, Building2, CalendarDays, ChevronRight, LogOut, Mail, Pencil, Phone, Plus, Search, Users } from 'lucide-react';
+import { BarChart3, Building2, CalendarDays, ChevronRight, LogOut, Mail, Pencil, Phone, Plus, ListTodo, Search, Users } from 'lucide-react';
 import { LIVE } from '../lib/cloud';
 import { PersonModal } from '../components/PersonModal';
 import { shortName, useApp } from '../store/AppStore';
@@ -89,6 +89,7 @@ export function More() {
   const { go, me, users, dispatch, signOut } = useApp();
   const [editing, setEditing] = useState(false);
   const links = [
+    { page: 'week', label: 'My week', Icon: ListTodo },
     { page: 'calendar', label: 'Calendar', Icon: CalendarDays },
     { page: 'reports', label: 'Reports', Icon: BarChart3 },
     { page: 'clients', label: 'Clients', Icon: Building2 },

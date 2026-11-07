@@ -43,7 +43,7 @@ interface Ctx {
 const C = createContext<Ctx | null>(null);
 
 /** Pages a ?screen= link may open directly. Anything else falls back to the dashboard instead of a blank screen. */
-const SIMPLE_PAGES = ['dashboard', 'projects', 'new', 'timeline', 'calendar', 'notifications', 'reports', 'clients', 'people', 'more'] as const;
+const SIMPLE_PAGES = ['dashboard', 'week', 'projects', 'new', 'timeline', 'calendar', 'notifications', 'reports', 'clients', 'people', 'more'] as const;
 
 function readParams(): { route?: Route; device?: Device; user?: string } {
   try {

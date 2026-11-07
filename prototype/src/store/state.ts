@@ -23,6 +23,7 @@ export const EMPTY_FILTERS: ProjectFilters = {
 
 export type Route =
   | { page: 'dashboard' }
+  | { page: 'week' }
   | { page: 'projects'; filters?: Partial<ProjectFilters> }
   | { page: 'project'; id: string; scopeId?: string; tab?: string }
   | { page: 'new'; copyFrom?: string }

@@ -24,6 +24,8 @@ summary: The client left and EngTrack became the owner's own app. Added safer si
 | App feel | Installable: manifest and icons, so it can go on a phone's home screen. No service worker, on purpose (no stale offline copy). |
 | Design | Redesigned sign-in (brand panel and form, show-password), loading skeleton, dashboard tiles with icons and count-up numbers, card shadows, staggered entrances, animated dialogs, toasts, progress bars and navigation. Reduced-motion turns all of it off. |
 | Small fixes | Form field alignment, field hint kept under errors, mobile card separator, dashboard date font, demo sidebar label. |
+| Feature | My week: one page with everything that is yours, overdue or due in the next 7 days, grouped by day; tasks can be ticked there. |
+| Fun | Confetti when ticking a task (a full party for a project's last task), the Konami code, "party" in quick search, a shortcuts sheet on "?", and a daily engineering one-liner on the dashboard. Off with reduced motion. |
 | Testing | Playwright browser tests at desktop and phone size against production builds; signed-in tests use an in-memory fake Supabase, so they never touch real data. |
 
 ## Verified
@@ -44,4 +46,4 @@ summary: The client left and EngTrack became the owner's own app. Added safer si
 - GitHub checks stay off (billing lock, not being paid). Run `npm test` and `npm run e2e` locally before every publish.
 - Sign in to the live app, check the data, and download a backup before any clean-up of the former client's records.
 - Decide what to do with the former client's data now that the app is personal (keep, export, or delete after a backup).
-- Ideas: dark mode (needs the hard-coded colours moved to theme tokens first), a "My week" agenda, CSV import.
+- Ideas: dark mode (needs the hard-coded colours moved to theme tokens first), CSV import.

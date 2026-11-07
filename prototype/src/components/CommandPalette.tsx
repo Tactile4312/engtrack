@@ -1,7 +1,7 @@
 // Quick search (Ctrl+K / Cmd+K, or "/"): jump to any project, client or screen, or start a new project.
 import { useEffect, useMemo, useRef, useState, type ReactNode } from 'react';
 import {
-  BarChart3, Bell, Building2, CalendarDays, CornerDownLeft, FolderKanban, GanttChartSquare, LayoutDashboard, PartyPopper, Plus, Search, Users, type LucideIcon,
+  BarChart3, Bell, Building2, CalendarDays, CornerDownLeft, FolderKanban, GanttChartSquare, LayoutDashboard, ListTodo, PartyPopper, Plus, Search, Users, type LucideIcon,
 } from 'lucide-react';
 import { useApp, type Route } from '../store/AppStore';
 import { LIVE } from '../lib/cloud';
@@ -26,6 +26,7 @@ interface Item {
 
 const PAGES: { page: Route['page']; label: string; Icon: LucideIcon; liveOnly?: boolean }[] = [
   { page: 'dashboard', label: 'Dashboard', Icon: LayoutDashboard },
+  { page: 'week', label: 'My week', Icon: ListTodo },
   { page: 'projects', label: 'Projects', Icon: FolderKanban },
   { page: 'timeline', label: 'Timeline', Icon: GanttChartSquare },
   { page: 'calendar', label: 'Calendar', Icon: CalendarDays },

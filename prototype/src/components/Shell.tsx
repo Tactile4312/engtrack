@@ -1,6 +1,6 @@
 import { useState, type ReactNode } from 'react';
 import {
-  AlertTriangle, Bell, BarChart3, Building2, CalendarDays, Check, FolderKanban, GanttChartSquare, Home, LayoutDashboard, LogOut, Menu, Monitor, RotateCcw, Search, Smartphone, Users,
+  AlertTriangle, Bell, BarChart3, Building2, CalendarDays, Check, FolderKanban, GanttChartSquare, Home, LayoutDashboard, ListTodo, LogOut, Menu, Monitor, RotateCcw, Search, Smartphone, Users,
 } from 'lucide-react';
 import { useApp, type Route } from '../store/AppStore';
 import { useInbox } from '../lib/hooks';
@@ -11,6 +11,7 @@ import { openQuickSearch } from './CommandPalette';
 
 const NAV: { page: Route['page']; label: string; Icon: typeof Home }[] = [
   { page: 'dashboard', label: 'Dashboard', Icon: LayoutDashboard },
+  { page: 'week', label: 'My week', Icon: ListTodo },
   { page: 'projects', label: 'Projects', Icon: FolderKanban },
   { page: 'timeline', label: 'Timeline', Icon: GanttChartSquare },
   { page: 'calendar', label: 'Calendar', Icon: CalendarDays },
@@ -179,7 +180,7 @@ export function MobileShell({ children, title, back }: { children: ReactNode; ti
     { page: 'notifications', label: 'Alerts', Icon: Bell, badge: unread },
     { page: 'more', label: 'More', Icon: Menu },
   ];
-  const moreActive = ['calendar', 'reports', 'clients', 'people', 'more'].includes(cur);
+  const moreActive = ['week', 'calendar', 'reports', 'clients', 'people', 'more'].includes(cur);
   return (
     <div className="flex min-h-0 flex-1 flex-col bg-paper">
       <header className="flex h-14 shrink-0 items-center gap-3 border-b border-line bg-white px-4">

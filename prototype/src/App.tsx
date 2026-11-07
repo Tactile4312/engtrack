@@ -2,6 +2,7 @@ import { CheckCircle2 } from 'lucide-react';
 import { AppProvider, useApp, type Route } from './store/AppStore';
 import { DesktopShell, MobileShell, PrototypeBar } from './components/Shell';
 import { Dashboard } from './pages/Dashboard';
+import { MyWeek } from './pages/MyWeek';
 import { Projects } from './pages/Projects';
 import { ProjectDetails } from './pages/ProjectDetails';
 import { ProjectForm } from './pages/ProjectForm';
@@ -21,6 +22,7 @@ import { LIVE } from './lib/cloud';
 function Page({ r }: { r: Route }) {
   switch (r.page) {
     case 'dashboard': return <Dashboard />;
+    case 'week': return <MyWeek />;
     case 'projects': return <Projects key={JSON.stringify(r.filters ?? {})} initial={r.filters} />;
     case 'project': return <ProjectDetails key={r.id + (r.scopeId ?? '') + (r.tab ?? '')} id={r.id} scopeId={r.scopeId} tab={r.tab} />;
     case 'new': return <ProjectForm key={'new' + (r.copyFrom ?? '')} copyFrom={r.copyFrom} />;
