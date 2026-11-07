@@ -2,7 +2,7 @@
 type: session
 date: 2026-11-07
 project: Engineering CRM Tracker
-summary: The client left and EngTrack became the owner's own app. Added safer sign-out, browser tests, task and milestone editing, two-device conflict protection, task reminders, quick search, an installable app and a design and motion pass. Published to GitHub Pages after local checks, because GitHub Actions is blocked by a billing lock.
+summary: The client left and EngTrack became the owner's own app. Added safer sign-out, browser tests, task and milestone editing, two-device conflict protection, task reminders, quick search, an installable app, a design and motion pass, a My week page and some fun (confetti, shortcuts sheet, daily one-liner). Published to GitHub Pages after local checks, because GitHub Actions is blocked by a billing lock.
 ---
 
 # 2026-11-06 to 2026-11-07 - Own app, safer saving, tasks, search and motion
@@ -30,17 +30,20 @@ summary: The client left and EngTrack became the owner's own app. Added safer si
 
 ## Verified
 - Unit tests: 157 pass. Browser tests: 22 demo tests passed in the last full run; all 11 signed-in tests passed before publishing `473f0aa`.
+- Final publish `3e41ba0` (My week and fun bits): 164 unit tests pass; browser tests 36 passed, 3 skipped on purpose (desktop-only keyboard checks). My week checked by eye at desktop and phone size.
 - Each safety feature was checked by turning it off on purpose: the related tests fail without it.
 - Published builds were checked for the real project address and for no test-project or fake address and no secret key; the live sign-in page and demo loaded without errors.
 
 ## Not verified
-- Signed-in use against the real database (nobody signed in to the real account in this session).
+- Signed-in use against the real database (nobody signed in to the real account in this session), including My week.
 - GitHub Actions on these commits (off: billing lock).
 
 ## Decisions
 - Tasks stay a simple checklist under scopes. Description, priority, status, progress and dependencies for tasks are deferred.
 - Page-level animations only fade, and fill mode is `backwards`; see README "Motion".
 - Browser tests run 2 at a time; this laptop runs short of memory.
+- My week shows only the person's own items (projects they manage and those milestones, scopes they engineer, tasks assigned to them), overdue first, then the next 7 days.
+- Fun features stay light: canvas confetti with no library, and everything is off with reduced motion.
 
 ## Next steps
 - GitHub checks stay off (billing lock, not being paid). Run `npm test` and `npm run e2e` locally before every publish.
