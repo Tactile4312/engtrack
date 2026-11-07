@@ -1,13 +1,14 @@
 // Quick search (Ctrl+K / Cmd+K, or "/"): jump to any project, client or screen, or start a new project.
 import { useEffect, useMemo, useRef, useState, type ReactNode } from 'react';
 import {
-  BarChart3, Bell, Building2, CalendarDays, CornerDownLeft, FolderKanban, GanttChartSquare, LayoutDashboard, Plus, Search, Users, type LucideIcon,
+  BarChart3, Bell, Building2, CalendarDays, CornerDownLeft, FolderKanban, GanttChartSquare, LayoutDashboard, PartyPopper, Plus, Search, Users, type LucideIcon,
 } from 'lucide-react';
 import { useApp, type Route } from '../store/AppStore';
 import { LIVE } from '../lib/cloud';
 import { can } from '../lib/rules';
 import { matches, searchClients, searchProjects, words } from '../lib/search';
 import { StatusBadge, cx } from './ui';
+import { celebrate } from './Confetti';
 
 /** Other parts of the app open quick search by sending this event (e.g. the search button in the header). */
 export const OPEN_QUICK_SEARCH = 'engtrack:quick-search';
@@ -79,6 +80,9 @@ export function CommandPalette() {
     const out: Item[] = [];
     if (can(me, 'create') && (!q2.length || matches(q2, 'new project create add'))) {
       out.push({ id: 'new', group: 'Actions', label: 'New project', sub: 'Create a project with its scopes', Icon: Plus, run: close(() => go({ page: 'new' })) });
+    }
+    if (q2.length && matches(q2, 'party confetti celebrate fun')) {
+      out.push({ id: 'party', group: 'Actions', label: 'Throw a party', sub: 'Confetti. Because you deserve it.', Icon: PartyPopper, run: close(() => celebrate({ big: true })) });
     }
     if (q2.length) {
       for (const p of searchProjects(visibleAll, s.clients, q)) {

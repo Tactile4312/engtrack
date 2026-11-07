@@ -13,6 +13,7 @@ import { Clients, More } from './pages/Clients';
 import { People } from './pages/People';
 import { ErrorBoundary } from './components/ErrorBoundary';
 import { CommandPalette } from './components/CommandPalette';
+import { Confetti } from './components/Confetti';
 import { LiveGate } from './components/LiveGate';
 import { LIVE } from './lib/cloud';
 
@@ -56,7 +57,8 @@ export function Screen() {
       <div className="relative flex min-h-0 flex-1">
         <DesktopShell>{page}</DesktopShell>
         <Toast />
-      <CommandPalette />
+        <CommandPalette />
+        <Confetti />
       </div>
     );
   }
@@ -65,6 +67,7 @@ export function Screen() {
       <MobileShell back={deep} title={title}>{page}</MobileShell>
       <Toast />
       <CommandPalette />
+      <Confetti />
     </div>
   );
   // Forced mobile preview on a wide screen: show the app inside a 390 x 844 phone frame.
